@@ -8,7 +8,7 @@ import time
 
 import donkeycar as dk
 from donkeycar.parts.kinematics import differential_steering
-
+import RPi.GPIO as GPIO
         
 class PCA9685:
     ''' 
@@ -496,13 +496,13 @@ class L298N_HBridge_DC_Motor(object):
     '''
     Motor controlled with an L298N hbridge from the gpio pins on Rpi
     '''
-    def __init__(self, pin_forward, pin_backward, pwm_pin, freq = 50):
-        import RPi.GPIO as GPIO
+
+    def __init__(self, pin_forward, pin_backward, pwm_pin, pin_scheme=GPIO.BCM, freq = 50):
         self.pin_forward = pin_forward
         self.pin_backward = pin_backward
         self.pwm_pin = pwm_pin
 
-        GPIO.setmode(GPIO.BOARD)
+        GPIO.setmode(pin_scheme)
         GPIO.setup(self.pin_forward, GPIO.OUT)
         GPIO.setup(self.pin_backward, GPIO.OUT)
         GPIO.setup(self.pwm_pin, GPIO.OUT)
@@ -511,7 +511,6 @@ class L298N_HBridge_DC_Motor(object):
         self.pwm.start(0)
 
     def run(self, speed):
-        import RPi.GPIO as GPIO
         '''
         Update the speed of the motor where 1 is full forward and
         -1 is full backwards.
@@ -538,7 +537,6 @@ class L298N_HBridge_DC_Motor(object):
 
 
     def shutdown(self):
-        import RPi.GPIO as GPIO
         self.pwm.stop()
         GPIO.cleanup()
 
@@ -551,16 +549,16 @@ class Mini_HBridge_DC_Motor_PWM(object):
     https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Dtoys-and-games&field-keywords=Mini+Dual+DC+Motor+H-Bridge+Driver
     https://www.aliexpress.com/item/5-pc-2-DC-Motor-Drive-Module-Reversing-PWM-Speed-Dual-H-Bridge-Stepper-Motor-Mini
     '''
-    def __init__(self, pin_forward, pin_backward, freq = 50, max_duty = 90):
+    def __init__(self, pin_forward, pin_backward, pin_scheme=GPIO.BCM, freq = 50, max_duty = 90):
         '''
         max_duty is from 0 to 100. I've read 90 is a good max.
         '''
-        import RPi.GPIO as GPIO
+
         self.pin_forward = pin_forward
         self.pin_backward = pin_backward
         self.max_duty = max_duty
         
-        GPIO.setmode(GPIO.BOARD)
+        GPIO.setmode(pin_scheme)
         GPIO.setup(self.pin_forward, GPIO.OUT)
         GPIO.setup(self.pin_backward, GPIO.OUT)
         
@@ -570,7 +568,6 @@ class Mini_HBridge_DC_Motor_PWM(object):
         self.pwm_b.start(0)
 
     def run(self, speed):
-        import RPi.GPIO as GPIO
         '''
         Update the speed of the motor where 1 is full forward and
         -1 is full backwards.
@@ -596,7 +593,6 @@ class Mini_HBridge_DC_Motor_PWM(object):
 
 
     def shutdown(self):
-        import RPi.GPIO as GPIO
         self.pwm_f.ChangeDutyCycle(0)
         self.pwm_b.ChangeDutyCycle(0)
         self.pwm_f.stop()
@@ -608,10 +604,9 @@ class RPi_GPIO_Servo(object):
     '''
     Servo controlled from the gpio pins on Rpi
     '''
-    def __init__(self, pin, freq = 50, min=5.0, max=7.8):
-        import RPi.GPIO as GPIO
+    def __init__(self, pin, pin_scheme=GPIO.BCM, freq = 50, min=5.0, max=7.8):
         self.pin = pin
-        GPIO.setmode(GPIO.BOARD)
+        GPIO.setmode(pin_scheme)
         GPIO.setup(self.pin, GPIO.OUT)
         
         self.pwm = GPIO.PWM(self.pin, freq)
@@ -620,7 +615,6 @@ class RPi_GPIO_Servo(object):
         self.max = max
 
     def run(self, pulse):
-        import RPi.GPIO as GPIO
         '''
         Update the speed of the motor where 1 is full forward and
         -1 is full backwards.
@@ -632,7 +626,6 @@ class RPi_GPIO_Servo(object):
 
 
     def shutdown(self):
-        import RPi.GPIO as GPIO
         self.pwm.stop()
         GPIO.cleanup()
 
