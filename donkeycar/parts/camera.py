@@ -5,6 +5,15 @@ from PIL import Image
 import glob
 from donkeycar.utils import rgb2gray
 
+#
+# import cv2 if its available
+# see https://github.com/opencv/opencv/issues/14884#issuecomment-599852128
+#
+try:
+    import cv2
+except:
+    pass
+
 class BaseCamera:
 
     def run_threaded(self):
@@ -151,10 +160,9 @@ class CSICamera(BaseCamera):
         self.capture_width = capture_width
         self.capture_height = capture_height
         self.framerate = framerate
+        self.init_camera()
 
     def init_camera(self):
-        import cv2
-
         # initialize the camera and stream
         self.camera = cv2.VideoCapture(
             self.gstreamer_pipeline(
@@ -166,19 +174,28 @@ class CSICamera(BaseCamera):
                 flip_method=self.flip_method),
             cv2.CAP_GSTREAMER)
 
-        self.poll_camera()
-        print('CSICamera loaded.. .warming camera')
-        time.sleep(2)
+        if self.camera.isOpened():
+            print('CSICamera opened.. .warming camera')
+            warming_time = time.time() + 5  # quick after 5 seconds
+            while self.frame is None and time.time() < warming_time:
+                print(".", end="")
+                self.poll_camera()
+                time.sleep(0.2)
+            print("")
+
+            if self.frame is None:
+                raise RuntimeError("Unable to start CSICamera.")
+        else:
+            raise RuntimeError("Unable to open CSICamera.")
         
     def update(self):
-        self.init_camera()
         while self.running:
             self.poll_camera()
 
     def poll_camera(self):
-        import cv2
         self.ret , frame = self.camera.read()
-        self.frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        if frame is not None:
+            self.frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     def run(self):
         self.poll_camera()
@@ -191,6 +208,7 @@ class CSICamera(BaseCamera):
         self.running = False
         print('stopping CSICamera')
         time.sleep(.5)
+        self.camera.release()
         del(self.camera)
 
 
