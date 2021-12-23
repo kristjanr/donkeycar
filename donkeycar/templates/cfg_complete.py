@@ -157,6 +157,8 @@ PRUNE_EVAL_PERCENT_OF_DATASET = .05  # percent of dataset used to perform evalua
 # If these crops values are too large, they will cause the stride values to become negative and the model with not be valid.
 ROI_CROP_TOP = 0                    #the number of rows of pixels to ignore on the top of the image
 ROI_CROP_BOTTOM = 0                 #the number of rows of pixels to ignore on the bottom of the image
+ROI_CROP_LEFT = 0                   #the number of rows of pixels to ignore on the left of the image
+ROI_CROP_RIGHT = 0                  #the number of rows of pixels to ignore on the right of the image
 
 
 #Model transfer options
