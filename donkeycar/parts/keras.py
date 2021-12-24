@@ -28,6 +28,7 @@ from tensorflow.keras.layers import Conv3D, MaxPooling3D, Conv2DTranspose
 from tensorflow.keras.backend import concatenate
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
+from wandb.keras import WandbCallback
 
 ONE_BYTE_SCALE = 1.0 / 255.0
 
@@ -143,7 +144,8 @@ class KerasPilot(ABC):
             ModelCheckpoint(monitor='val_loss',
                             filepath=model_path,
                             save_best_only=True,
-                            verbose=verbose)]
+                            verbose=verbose),
+            WandbCallback()]
 
         history: tf.keras.callbacks.History = model.fit(
             x=train_data,
@@ -157,7 +159,7 @@ class KerasPilot(ABC):
             workers=1,
             use_multiprocessing=False
         )
-            
+
         if show_plot:
             try:
                 import matplotlib.pyplot as plt
@@ -191,7 +193,7 @@ class KerasPilot(ABC):
 
             except Exception as ex:
                 print(f"problems with loss graph: {ex}")
-            
+
         return history
 
     def _get_train_model(self) -> Model:
@@ -251,7 +253,7 @@ class KerasCategorical(KerasPilot):
                            loss={'angle_out': 'categorical_crossentropy',
                                  'throttle_out': 'categorical_crossentropy'},
                            loss_weights={'angle_out': 0.5, 'throttle_out': 0.5})
-        
+
     def inference(self, img_arr, other_arr):
         if img_arr is None:
             print('no image')
@@ -299,7 +301,8 @@ class KerasLinear(KerasPilot):
         self.model = default_n_linear(num_outputs, input_shape)
 
     def compile(self):
-        self.model.compile(optimizer=self.optimizer, loss='mse')
+        loss_weights = {'n_outputs0_loss': 0.9, 'n_outputs1_loss': 0.1}
+        self.model.compile(optimizer=self.optimizer, loss='mse', loss_weights=loss_weights)
 
     def inference(self, img_arr, other_arr):
         img_arr = img_arr.reshape((1,) + img_arr.shape)
@@ -394,7 +397,7 @@ class KerasIMU(KerasPilot):
 
     def compile(self):
         self.model.compile(optimizer=self.optimizer, loss='mse')
-        
+
     def inference(self, img_arr, other_arr):
         img_arr = img_arr.reshape((1,) + img_arr.shape)
         imu_arr = np.array(other_arr).reshape(1, self.num_imu_inputs)
@@ -421,7 +424,7 @@ class KerasBehavioral(KerasPilot):
 
     def compile(self):
         self.model.compile(optimizer=self.optimizer, loss='mse')
-        
+
     def inference(self, img_arr, state_array):
         img_arr = img_arr.reshape((1,) + img_arr.shape)
         bhv_arr = np.array(state_array).reshape(1, len(state_array))
@@ -429,7 +432,7 @@ class KerasBehavioral(KerasPilot):
         # In order to support older models with linear throttle,we will test for
         # shape of throttle to see if it's the newer binned version.
         N = len(throttle[0])
-        
+
         if N > 0:
             throttle = dk.utils.linear_unbin(throttle, N=N, offset=0.0, R=0.5)
         else:
@@ -458,13 +461,12 @@ class KerasLocalizer(KerasPilot):
     def compile(self):
         self.model.compile(optimizer=self.optimizer, metrics=['acc'],
                            loss='mse')
-        
+
     def inference(self, img_arr, other_arr):
         img_arr = img_arr.reshape((1,) + img_arr.shape)
         angle, throttle, track_loc = self.model.predict([img_arr])
         loc = np.argmax(track_loc[0])
         return angle, throttle, loc
-
 
 
 def conv2d(filters, kernel, strides, layer_num, activation='relu'):
@@ -554,12 +556,12 @@ def default_imu(num_outputs, num_imu_inputs, input_shape):
     x = core_cnn_layers(img_in, drop)
     x = Dense(100, activation='relu')(x)
     x = Dropout(.1)(x)
-    
+
     y = imu_in
     y = Dense(14, activation='relu')(y)
     y = Dense(14, activation='relu')(y)
     y = Dense(14, activation='relu')(y)
-    
+
     z = concatenate([x, y])
     z = Dense(50, activation='relu')(z)
     z = Dropout(.1)(z)
@@ -569,7 +571,7 @@ def default_imu(num_outputs, num_imu_inputs, input_shape):
     outputs = []
     for i in range(num_outputs):
         outputs.append(Dense(1, activation='linear', name='out_' + str(i))(z))
-        
+
     model = Model(inputs=[img_in, imu_in], outputs=outputs)
     return model
 
@@ -582,23 +584,23 @@ def default_bhv(num_bvh_inputs, input_shape):
     x = core_cnn_layers(img_in, drop)
     x = Dense(100, activation='relu')(x)
     x = Dropout(.1)(x)
-    
+
     y = bvh_in
     y = Dense(num_bvh_inputs * 2, activation='relu')(y)
     y = Dense(num_bvh_inputs * 2, activation='relu')(y)
     y = Dense(num_bvh_inputs * 2, activation='relu')(y)
-    
+
     z = concatenate([x, y])
     z = Dense(100, activation='relu')(z)
     z = Dropout(.1)(z)
     z = Dense(50, activation='relu')(z)
     z = Dropout(.1)(z)
-    
+
     # Categorical output of the angle into 15 bins
     angle_out = Dense(15, activation='softmax', name='angle_out')(z)
     # Categorical output of throttle into 20 bins
     throttle_out = Dense(20, activation='softmax', name='throttle_out')(z)
-        
+
     model = Model(inputs=[img_in, bvh_in], outputs=[angle_out, throttle_out])
     return model
 
@@ -610,7 +612,7 @@ def default_loc(num_locations, input_shape):
     x = core_cnn_layers(img_in, drop)
     x = Dense(100, activation='relu')(x)
     x = Dropout(drop)(x)
-    
+
     z = Dense(50, activation='relu')(x)
     z = Dropout(drop)(z)
 
@@ -648,7 +650,7 @@ class KerasRNN_LSTM(KerasPilot):
 
         self.img_seq = self.img_seq[1:]
         self.img_seq.append(img_arr)
-        
+
         img_arr = np.array(self.img_seq).reshape((1, self.seq_length,
                                                   *self.input_shape))
         outputs = self.model.predict([img_arr])
@@ -660,7 +662,7 @@ class KerasRNN_LSTM(KerasPilot):
 def rnn_lstm(seq_length=3, num_outputs=2, input_shape=(120, 160, 3)):
     # add sequence length dimensions as keras time-distributed expects shape
     # of (num_samples, seq_length, input_shape)
-    img_seq_shape = (seq_length,) + input_shape   
+    img_seq_shape = (seq_length,) + input_shape
     img_in = Input(batch_shape=img_seq_shape, name='img_in')
     drop_out = 0.3
 
@@ -678,7 +680,7 @@ def rnn_lstm(seq_length=3, num_outputs=2, input_shape=(120, 160, 3)):
     x.add(TD(Flatten(name='flattened')))
     x.add(TD(Dense(100, activation='relu')))
     x.add(TD(Dropout(drop_out)))
-      
+
     x.add(LSTM(128, return_sequences=True, name="LSTM_seq"))
     x.add(Dropout(.1))
     x.add(LSTM(128, return_sequences=False, name="LSTM_fin"))
@@ -715,7 +717,7 @@ class Keras3D_CNN(KerasPilot):
 
         self.img_seq = self.img_seq[1:]
         self.img_seq.append(img_arr)
-        
+
         img_arr = np.array(self.img_seq).reshape((1, self.seq_length,
                                                   *self.input_shape))
         outputs = self.model.predict([img_arr])
@@ -834,14 +836,14 @@ def default_latent(num_outputs, input_shape):
     x = Convolution2D(64, (3,3), strides=(2,2), activation='relu', name="conv2d_7")(x)
     x = Dropout(drop)(x)
     x = Convolution2D(64, (1,1), strides=(2,2), activation='relu', name="latent")(x)
-    
+
     y = Conv2DTranspose(filters=64, kernel_size=(3,3), strides=2, name="deconv2d_1")(x)
     y = Conv2DTranspose(filters=64, kernel_size=(3,3), strides=2, name="deconv2d_2")(y)
     y = Conv2DTranspose(filters=32, kernel_size=(3,3), strides=2, name="deconv2d_3")(y)
     y = Conv2DTranspose(filters=32, kernel_size=(3,3), strides=2, name="deconv2d_4")(y)
     y = Conv2DTranspose(filters=32, kernel_size=(3,3), strides=2, name="deconv2d_5")(y)
     y = Conv2DTranspose(filters=1, kernel_size=(3,3), strides=2, name="img_out")(y)
-    
+
     x = Flatten(name='flattened')(x)
     x = Dense(256, activation='relu')(x)
     x = Dropout(drop)(x)
@@ -853,6 +855,6 @@ def default_latent(num_outputs, input_shape):
     outputs = [y]
     for i in range(num_outputs):
         outputs.append(Dense(1, activation='linear', name='n_outputs' + str(i))(x))
-        
+
     model = Model(inputs=[img_in], outputs=outputs)
     return model
