@@ -28,7 +28,6 @@ from tensorflow.keras.layers import Conv3D, MaxPooling3D, Conv2DTranspose
 from tensorflow.keras.backend import concatenate
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
-from wandb.keras import WandbCallback
 
 ONE_BYTE_SCALE = 1.0 / 255.0
 
@@ -137,6 +136,7 @@ class KerasPilot(ABC):
         model = self._get_train_model()
         self.compile()
 
+        from wandb.keras import WandbCallback
         callbacks = [
             EarlyStopping(monitor='val_loss',
                           patience=patience,
