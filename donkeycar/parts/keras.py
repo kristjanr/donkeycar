@@ -10,7 +10,7 @@ include one or more models to help direct the vehicles motion.
 
 from abc import ABC, abstractmethod
 import numpy as np
-from typing import Dict, Any, Tuple, Optional, Union
+from typing import Dict, Tuple, Optional, Union
 import donkeycar as dk
 
 from donkeycar.utils import normalize_image, linear_bin
@@ -332,13 +332,16 @@ class KerasLinear(KerasPilot):
         return shapes
 
 
-class KerasLinearSamePadded(KerasLinear):
-    def __init__(self, num_outputs=2, input_shape=(60, 160, 3)):
+class KerasLinear60x160(KerasLinear):
+    def __init__(self, num_outputs=2):
         super().__init__()
-        self.model = same_padding_n_linear(num_outputs, input_shape)
+        self.model = same_padding_n_linear(num_outputs, (60, 160, 3))
 
     def inference(self, img_arr, other_arr):
-        super().inference(img_arr[60:], other_arr)
+        if img_arr.shape[0] == 120:
+            return super().inference(img_arr[60:], other_arr)
+        else:
+            raise Exception()
 
 
 class KerasInferred(KerasPilot):
