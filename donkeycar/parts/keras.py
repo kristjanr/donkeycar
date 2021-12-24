@@ -332,6 +332,12 @@ class KerasLinear(KerasPilot):
         return shapes
 
 
+class KerasLinearSamePadded(KerasLinear):
+    def __init__(self, num_outputs=2, input_shape=(120, 160, 3)):
+        super().__init__()
+        self.model = same_padding_n_linear(num_outputs, input_shape)
+
+
 class KerasInferred(KerasPilot):
     def __init__(self, num_outputs=1, input_shape=(120, 160, 3)):
         super().__init__()
@@ -469,7 +475,7 @@ class KerasLocalizer(KerasPilot):
         return angle, throttle, loc
 
 
-def conv2d(filters, kernel, strides, layer_num, activation='relu'):
+def conv2d(filters, kernel, strides, layer_num, activation='relu', padding='valid'):
     """
     Helper function to create a standard valid-padded convolutional layer
     with square kernel and strides and unified naming convention
@@ -479,16 +485,18 @@ def conv2d(filters, kernel, strides, layer_num, activation='relu'):
     :param strides:     creates (strides, strides) stride
     :param layer_num:   used in labelling the layer
     :param activation:  activation, defaults to relu
+    :param padding:     either valid or same
     :return:            tf.keras Convolution2D layer
     """
     return Convolution2D(filters=filters,
                          kernel_size=(kernel, kernel),
                          strides=(strides, strides),
                          activation=activation,
-                         name='conv2d_' + str(layer_num))
+                         name='conv2d_' + str(layer_num),
+                         padding=padding)
 
 
-def core_cnn_layers(img_in, drop, l4_stride=1):
+def core_cnn_layers(img_in, drop, l4_stride=1, padding='valid'):
     """
     Returns the core CNN layers that are shared among the different models,
     like linear, imu, behavioural
@@ -496,21 +504,40 @@ def core_cnn_layers(img_in, drop, l4_stride=1):
     :param img_in:          input layer of network
     :param drop:            dropout rate
     :param l4_stride:       4-th layer stride, default 1
+    :param padding:         either valid or same
     :return:                stack of CNN layers
     """
     x = img_in
-    x = conv2d(24, 5, 2, 1)(x)
+    x = conv2d(24, 5, 2, 1, padding=padding)(x)
     x = Dropout(drop)(x)
-    x = conv2d(32, 5, 2, 2)(x)
+    x = conv2d(32, 5, 2, 2, padding=padding)(x)
     x = Dropout(drop)(x)
-    x = conv2d(64, 5, 2, 3)(x)
+    x = conv2d(64, 5, 2, 3, padding=padding)(x)
     x = Dropout(drop)(x)
-    x = conv2d(64, 3, l4_stride, 4)(x)
+    x = conv2d(64, 3, l4_stride, 4, padding=padding)(x)
     x = Dropout(drop)(x)
-    x = conv2d(64, 3, 1, 5)(x)
+    x = conv2d(64, 3, 1, 5, padding=padding)(x)
     x = Dropout(drop)(x)
     x = Flatten(name='flattened')(x)
     return x
+
+
+def same_padding_n_linear(num_outputs, input_shape=(120, 160, 3)):
+    drop = 0.2
+    img_in = Input(shape=input_shape, name='img_in')
+    x = core_cnn_layers(img_in, drop, padding='same')
+    x = Dense(100, activation='relu', name='dense_1')(x)
+    x = Dropout(drop)(x)
+    x = Dense(50, activation='relu', name='dense_2')(x)
+    x = Dropout(drop)(x)
+
+    outputs = []
+    for i in range(num_outputs):
+        outputs.append(
+            Dense(1, activation='linear', name='n_outputs' + str(i))(x))
+
+    model = Model(inputs=[img_in], outputs=outputs)
+    return model
 
 
 def default_n_linear(num_outputs, input_shape=(120, 160, 3)):
