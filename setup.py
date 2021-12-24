@@ -50,6 +50,7 @@ setup(name='donkeycar',
           'typing_extensions',
           'pyfiglet',
           'psutil'
+          'wandb'
       ],
       extras_require={
           'pi': [
