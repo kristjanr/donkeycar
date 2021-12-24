@@ -333,9 +333,12 @@ class KerasLinear(KerasPilot):
 
 
 class KerasLinearSamePadded(KerasLinear):
-    def __init__(self, num_outputs=2, input_shape=(120, 160, 3)):
+    def __init__(self, num_outputs=2, input_shape=(60, 160, 3)):
         super().__init__()
         self.model = same_padding_n_linear(num_outputs, input_shape)
+
+    def inference(self, img_arr, other_arr):
+        super().inference(img_arr[60:], other_arr)
 
 
 class KerasInferred(KerasPilot):
