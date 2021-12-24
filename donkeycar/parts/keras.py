@@ -301,7 +301,7 @@ class KerasLinear(KerasPilot):
         self.model = default_n_linear(num_outputs, input_shape)
 
     def compile(self):
-        loss_weights = {'n_outputs0_loss': 0.9, 'n_outputs1_loss': 0.1}
+        loss_weights = {'n_outputs0': 0.9, 'n_outputs1': 0.1}
         self.model.compile(optimizer=self.optimizer, loss='mse', loss_weights=loss_weights)
 
     def inference(self, img_arr, other_arr):
