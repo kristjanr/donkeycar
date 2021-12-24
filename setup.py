@@ -50,7 +50,6 @@ setup(name='donkeycar',
           'typing_extensions',
           'pyfiglet',
           'psutil',
-          'wandb'
       ],
       extras_require={
           'pi': [
@@ -68,7 +67,8 @@ setup(name='donkeycar',
           'pc': [
               'matplotlib',
               'imgaug',
-              'kivy'
+              'kivy',
+              'wandb'
           ],
           'dev': [
               'pytest',
