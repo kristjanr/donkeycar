@@ -49,7 +49,7 @@ setup(name='donkeycar',
           'progress',
           'typing_extensions',
           'pyfiglet',
-          'psutil'
+          'psutil',
           'wandb'
       ],
       extras_require={
