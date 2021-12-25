@@ -332,6 +332,16 @@ class KerasLinear(KerasPilot):
         return shapes
 
 
+class KerasSamePaddingLinear(KerasLinear):
+    def __init__(self, num_outputs=2, input_shape=(120, 160, 3)):
+        super().__init__()
+        self.model = same_padding_n_linear(num_outputs, input_shape)
+
+    def compile(self):
+        loss_weights = {'n_outputs0': 1.0, 'n_outputs1': 0.0}
+        self.model.compile(optimizer=self.optimizer, loss='mae', loss_weights=loss_weights)
+
+
 class KerasLinear60x160(KerasLinear):
     def __init__(self, num_outputs=2):
         super().__init__()
@@ -342,6 +352,10 @@ class KerasLinear60x160(KerasLinear):
             return super().inference(img_arr[60:], other_arr)
         else:
             raise Exception()
+
+    def compile(self):
+        loss_weights = {'n_outputs0': 1.0, 'n_outputs1': 0.0}
+        self.model.compile(optimizer=self.optimizer, loss='mae', loss_weights=loss_weights)
 
 
 class KerasInferred(KerasPilot):

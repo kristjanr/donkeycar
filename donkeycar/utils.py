@@ -415,7 +415,7 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
     create a Keras model and return it.
     '''
     from donkeycar.parts.keras import KerasPilot, KerasCategorical, \
-        KerasLinear, KerasInferred, KerasLinear60x160
+        KerasLinear, KerasInferred, KerasLinear60x160, KerasSamePaddingLinear
     from donkeycar.parts.tflite import TFLitePilot
 
     if model_type is None:
@@ -428,6 +428,8 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
         kl = KerasLinear(input_shape=input_shape)
     elif model_type == "linear60x160":
         kl = KerasLinear60x160()
+    elif model_type == "linear_same_padding":
+        kl = KerasSamePaddingLinear()
     elif model_type == "categorical":
         kl = KerasCategorical(input_shape=input_shape,
                               throttle_range=cfg.MODEL_CATEGORICAL_MAX_THROTTLE_RANGE)
