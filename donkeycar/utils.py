@@ -429,7 +429,7 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
     elif model_type == "linear60x160":
         kl = KerasLinear60x160()
     elif model_type == "linear_same_padding":
-        kl = KerasSamePaddingLinear()
+        kl = KerasSamePaddingLinear(input_shape=input_shape)
     elif model_type == "categorical":
         kl = KerasCategorical(input_shape=input_shape,
                               throttle_range=cfg.MODEL_CATEGORICAL_MAX_THROTTLE_RANGE)
