@@ -422,7 +422,8 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
         model_type = cfg.DEFAULT_MODEL_TYPE
     print("\"get_model_by_type\" model Type is: {}".format(model_type))
 
-    input_shape = (cfg.IMAGE_H, cfg.IMAGE_W, cfg.IMAGE_DEPTH)
+    input_shape = (cfg.IMAGE_H-cfg.ROI_CROP_TOP-cfg.ROI_CROP_BOTTOM, cfg.IMAGE_W-cfg.ROI_CROP_LEFT-cfg.ROI_CROP_RIGHT, cfg.IMAGE_DEPTH)
+    print(f'Input shape: {input_shape}')
     kl: KerasPilot
     if model_type == "linear":
         kl = KerasLinear(input_shape=input_shape)
