@@ -117,6 +117,8 @@ class ImageAugmentation:
 
     # Parts interface
     def run(self, img_arr):
+        if not img_arr:
+            return img_arr
         print(f'img_arr type {type(img_arr)}')
         print(f'img_arr type {img_arr.shape}')
         aug_img_arr = self.augmentations.augment_image(img_arr)
