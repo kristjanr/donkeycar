@@ -160,7 +160,7 @@ class KerasPilot(ABC):
         assert isinstance(self.interpreter, KerasInterpreter)
         model = self.interpreter.model
         self.compile()
-
+        from wandb.keras import WandbCallback
         callbacks = [
             EarlyStopping(monitor='val_loss',
                           patience=patience,
@@ -168,7 +168,8 @@ class KerasPilot(ABC):
             ModelCheckpoint(monitor='val_loss',
                             filepath=model_path,
                             save_best_only=True,
-                            verbose=verbose)]
+                            verbose=verbose),
+            WandbCallback()]
 
         history: tf.keras.callbacks.History = model.fit(
             x=train_data,

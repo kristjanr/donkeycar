@@ -35,6 +35,7 @@ dependencies:
   - kivy=2.0.0
   - plotly
   - tensorflow==2.2.0
+  - wandb
   - pip:
     - git+https://github.com/autorope/keras-vis.git
     - simple-pid
