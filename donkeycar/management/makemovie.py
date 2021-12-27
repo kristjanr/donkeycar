@@ -208,7 +208,7 @@ class MakeMovie(object):
         img = img.reshape((1,) + img.shape)
         images = tf.Variable(img, dtype=float)
 
-        if self.model_type == 'linear':
+        if self.model_type == 'linear' or 'linear' in self.model_type:
             with tf.GradientTape(persistent=True) as tape:
                 tape.watch(images)
                 pred_list = self.sal_model(images, training=False)
