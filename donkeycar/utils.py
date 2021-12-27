@@ -435,7 +435,7 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
     '''
     from donkeycar.parts.keras import KerasCategorical, KerasLinear, \
         KerasInferred, KerasIMU, KerasMemory, KerasBehavioral, KerasLocalizer, \
-        KerasLSTM, Keras3D_CNN
+        KerasLSTM, Keras3D_CNN, KerasLinearOnlySteeringMAELoss
     from donkeycar.parts.interpreter import KerasInterpreter, TfLite, TensorRT
 
     if model_type is None:
@@ -454,6 +454,8 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
     used_model_type = EqMemorizedString(used_model_type)
     if used_model_type == "linear":
         kl = KerasLinear(interpreter=interpreter, input_shape=input_shape)
+    elif used_model_type == "linear-steering-mae":
+        kl = KerasLinearOnlySteeringMAELoss(interpreter=interpreter, input_shape=input_shape)
     elif used_model_type == "categorical":
         kl = KerasCategorical(
             interpreter=interpreter,

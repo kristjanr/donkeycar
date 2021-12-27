@@ -372,6 +372,12 @@ class KerasLinear(KerasPilot):
         return shapes
 
 
+class KerasLinearOnlySteeringMAELoss(KerasLinear):
+    def compile(self):
+        weights = {"n_outputs0": 1.0, "n_outputs1": 0.0}
+        self.interpreter.compile(optimizer=self.optimizer, loss='mae', loss_weights=weights)
+
+
 class KerasMemory(KerasLinear):
     """
     The KerasLinearWithMemory is based on KerasLinear but uses the last n
