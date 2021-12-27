@@ -4,6 +4,8 @@ from tensorflow.python.keras import backend as K
 import tensorflow as tf
 import cv2
 from matplotlib import cm
+from donkeycar.pipeline.augmentations import Augmentations
+
 try:
     from vis.utils import utils
 except:
@@ -37,6 +39,12 @@ class MakeMovie(object):
             return
 
         self.cfg = dk.load_config(conf)
+        if 'CROP' in self.cfg.TRANSFORMATIONS:
+            self.cropping = Augmentations.crop(left=self.cfg.ROI_CROP_LEFT,
+                                               right=self.cfg.ROI_CROP_RIGHT,
+                                               bottom=self.cfg.ROI_CROP_BOTTOM,
+                                               top=self.cfg.ROI_CROP_TOP,
+                                               keep_size=True)
 
         if args.type is None and args.model is not None:
             args.type = self.cfg.DEFAULT_MODEL_TYPE
@@ -245,9 +253,11 @@ class MakeMovie(object):
         img_path = os.path.join(self.tub.images_base_path, rec['cam/image_array'])
         image_input = img_to_arr(Image.open(img_path))
         image = image_input
+        if self.cropping:
+            image = self.cropping.augment_image(image)
         
         if self.do_salient:
-            image = self.draw_salient(image_input)
+            image = self.draw_salient(image)
             image = cv2.normalize(src=image, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
         
         if self.user: self.draw_user_input(rec, image_input, image)
