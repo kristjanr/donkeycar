@@ -21,6 +21,19 @@ DEG_TO_RAD = math.pi / 180.0
 
 class MakeMovie(object):
 
+    def __init__(self):
+        self.do_salient = None
+        self.keras_part = None
+        self.iterator = None
+        self.current = None
+        self.scale = None
+        self.user = None
+        self.end_index = None
+        self.model_type = None
+        self.tub = None
+        self.cfg = None
+        self.cropping = None
+
     def run(self, args, parser):
         '''
         Load the images from a tub and create a movie from them.
