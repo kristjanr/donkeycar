@@ -151,6 +151,9 @@ class MakeMovie(object):
 
         blue = (0, 0, 255)
         pilot_angle, pilot_throttle = self.keras_part.run(img)
+        # set throttle to 1.0 where model only learns steering
+        if 'linear-steering' in self.model_type:
+            pilot_throttle = 1.0
         self.draw_line_into_image(pilot_angle, pilot_throttle, True, img_drawon, blue)
 
     def draw_steering_distribution(self, img, img_drawon):
