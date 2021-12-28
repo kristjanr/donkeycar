@@ -25,6 +25,17 @@ class Augmentations(object):
         return augmentation
 
     @classmethod
+    def crop(cls, left, right, top, bottom, keep_size=False):
+        """
+        The image augumentation sequence.
+        Crops based on a region of interest among other things.
+        left, right, top & bottom are the number of pixels to crop.
+        """
+        augmentation = iaa.Crop(px=(top, right, bottom, left),
+                                keep_size=keep_size)
+        return augmentation
+
+    @classmethod
     def trapezoidal_mask(cls, lower_left, lower_right, upper_left, upper_right,
                          min_y, max_y):
         """
