@@ -115,6 +115,9 @@ HBRIDGE_L298N_PIN_RIGHT_BWD = 13
 HBRIDGE_L298N_PIN_RIGHT_EN = 11
 
 #TRAINING
+
+ADD_MIRROR = False # should we double the training data by adding mirrored images/angles on the fly?
+
 # The default AI framework to use. Choose from (tensorflow|pytorch)
 DEFAULT_AI_FRAMEWORK = 'tensorflow'
 

@@ -94,16 +94,16 @@ class TubDataset(object):
             logger.info(f'Loading tubs from paths {self.tub_paths}')
             logger.info(f'ADD_MIRROR is {self.config.ADD_MIRROR}')
         for tub in self.tubs:
-                for underlying in tub:
-                    if self.config.ADD_MIRROR:
-                        cfg = self.config
-                        cfg.FLIP_LEFT_RIGHT = True
-                        record = TubRecord(cfg, tub.base_path, underlying)
-                        if not self.train_filter or self.train_filter(record):
-                            self.records.append(record)
-                    record = TubRecord(self.config, tub.base_path, underlying)
+            for underlying in tub:
+                if self.config.ADD_MIRROR:
+                    cfg = self.config
+                    cfg.FLIP_LEFT_RIGHT = True
+                    record = TubRecord(cfg, tub.base_path, underlying)
                     if not self.train_filter or self.train_filter(record):
                         self.records.append(record)
+                record = TubRecord(self.config, tub.base_path, underlying)
+                if not self.train_filter or self.train_filter(record):
+                    self.records.append(record)
             if self.seq_size > 0:
                 seq = Collator(self.seq_size, self.records)
                 self.records = list(seq)

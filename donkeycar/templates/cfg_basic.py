@@ -71,6 +71,8 @@ LOGGING_FORMAT = '%(message)s'  # (Python logging format - https://docs.python.o
 
 
 #TRAINING
+
+ADD_MIRROR = False # should we double the training data by adding mirrored images/angles on the fly?
 DEFAULT_AI_FRAMEWORK = 'tensorflow'  # The default AI framework to use. Choose from (tensorflow|pytorch)
 DEFAULT_MODEL_TYPE = 'linear' #(linear|categorical|rnn|imu|behavior|3d|localizer|latent)
 CREATE_TF_LITE = True  # automatically create tflite model in training
