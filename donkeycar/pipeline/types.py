@@ -39,6 +39,8 @@ class TubRecord(object):
         self.config = config
         self.base_path = base_path
         self.underlying = underlying
+        if config.FLIP_LEFT_RIGHT:
+            self.underlying['user/angle'] *= (-1)
         self._image: Optional[Any] = None
 
     def image(self, cached=True, as_nparray=True) -> np.ndarray:
@@ -92,6 +94,12 @@ class TubDataset(object):
             logger.info(f'Loading tubs from paths {self.tub_paths}')
             for tub in self.tubs:
                 for underlying in tub:
+                    if self.config.ADD_MIRROR:
+                        cfg = self.config
+                        cfg.FLIP_LEFT_RIGHT = True
+                        record = TubRecord(cfg, tub.base_path, underlying)
+                        if not self.train_filter or self.train_filter(record):
+                            self.records.append(record)
                     record = TubRecord(self.config, tub.base_path, underlying)
                     if not self.train_filter or self.train_filter(record):
                         self.records.append(record)
