@@ -498,9 +498,10 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
             elif mode == 'local_angle':
                 return pilot_angle if pilot_angle else 0.0, user_throttle
-
             else:
-                return pilot_angle if pilot_angle else 0.0, cfg.AI_CONST_THROTTLE
+                return pilot_angle if pilot_angle else 0.0, \
+                       pilot_throttle * self.cfg.AI_THROTTLE_MULT if \
+                           pilot_throttle else 0.0
 
     V.add(DriveMode(),
           inputs=['user/mode', 'user/angle', 'user/throttle',
