@@ -92,7 +92,8 @@ class TubDataset(object):
     def get_records(self):
         if not self.records:
             logger.info(f'Loading tubs from paths {self.tub_paths}')
-            for tub in self.tubs:
+            logger.info(f'ADD_MIRROR is {self.config.ADD_MIRROR}')
+        for tub in self.tubs:
                 for underlying in tub:
                     if self.config.ADD_MIRROR:
                         cfg = self.config
