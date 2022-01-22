@@ -21,6 +21,7 @@ from docopt import docopt
 
 
 import donkeycar as dk
+from donkeycar.parts import actuator, pins
 from donkeycar.parts.transform import TriggeredCallback, DelayedTrigger
 from donkeycar.parts.tub_v2 import TubWriter
 from donkeycar.parts.datastore import TubHandler
@@ -141,10 +142,10 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
             cam = PiCamera(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH, framerate=cfg.CAMERA_FRAMERATE, vflip=cfg.CAMERA_VFLIP, hflip=cfg.CAMERA_HFLIP)
         elif cfg.CAMERA_TYPE == "WEBCAM":
             from donkeycar.parts.camera import Webcam
-            cam = Webcam(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH)
+            cam = Webcam(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH, camera_index=cfg.CAMERA_INDEX)
         elif cfg.CAMERA_TYPE == "CVCAM":
             from donkeycar.parts.cv import CvCam
-            cam = CvCam(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH)
+            cam = CvCam(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH, iCam=cfg.CAMERA_INDEX)
         elif cfg.CAMERA_TYPE == "CSIC":
             from donkeycar.parts.camera import CSICamera
             cam = CSICamera(image_w=cfg.IMAGE_W, image_h=cfg.IMAGE_H, image_d=cfg.IMAGE_DEPTH, framerate=cfg.CAMERA_FRAMERATE, 
@@ -547,7 +548,37 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     # Drive train setup
     if cfg.DONKEY_GYM or cfg.DRIVE_TRAIN_TYPE == "MOCK":
         pass
+    elif cfg.DRIVE_TRAIN_TYPE == "PWM_STEERING_THROTTLE":
+        #
+        # drivetrain for RC car with servo and ESC.
+        # using a PwmPin for steering (servo)
+        # and as second PwmPin for throttle (ESC)
+        #
+        from donkeycar.parts.actuator import PWMSteering, PWMThrottle, PulseController
+        steering_controller = PulseController(
+            pwm_pin=pins.pwm_pin_by_id(cfg.PWM_STEERING_PIN),
+            pwm_scale=cfg.PWM_STEERING_SCALE, 
+            pwm_inverted=cfg.PWM_STEERING_INVERTED)
+        steering = PWMSteering(controller=steering_controller,
+                                        left_pulse=cfg.STEERING_LEFT_PWM, 
+                                        right_pulse=cfg.STEERING_RIGHT_PWM)
+        
+        throttle_controller = PulseController(
+            pwm_pin=pins.pwm_pin_by_id(cfg.PWM_THROTTLE_PIN), 
+            pwm_scale=cfg.PWM_THROTTLE_SCALE, 
+            pwm_inverted=cfg.PWM_THROTTLE_INVERTED)
+        throttle = PWMThrottle(controller=throttle_controller,
+                                            max_pulse=cfg.THROTTLE_FORWARD_PWM,
+                                            zero_pulse=cfg.THROTTLE_STOPPED_PWM, 
+                                            min_pulse=cfg.THROTTLE_REVERSE_PWM)
+        V.add(steering, inputs=['angle'], threaded=True)
+        V.add(throttle, inputs=['throttle'], threaded=True)
+
     elif cfg.DRIVE_TRAIN_TYPE == "I2C_SERVO":
+        #
+        # Thi driver is DEPRECATED in favor of 'DRIVE_TRAIN_TYPE == "PWM_STEERING_THROTTLE"'
+        # This driver will be removed in a future release
+        #
         from donkeycar.parts.actuator import PCA9685, PWMSteering, PWMThrottle
 
         steering_controller = PCA9685(cfg.STEERING_CHANNEL, cfg.PCA9685_I2C_ADDR, busnum=cfg.PCA9685_I2C_BUSNUM)
@@ -565,20 +596,25 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
         V.add(throttle, inputs=['throttle'], threaded=True)
 
     elif cfg.DRIVE_TRAIN_TYPE == "DC_STEER_THROTTLE":
-        from donkeycar.parts.actuator import Mini_HBridge_DC_Motor_PWM
-
-        steering = Mini_HBridge_DC_Motor_PWM(cfg.HBRIDGE_PIN_LEFT, cfg.HBRIDGE_PIN_RIGHT)
-        throttle = Mini_HBridge_DC_Motor_PWM(cfg.HBRIDGE_PIN_FWD, cfg.HBRIDGE_PIN_BWD)
+        steering = actuator.L298N_HBridge_2pin(
+            pins.pwm_pin_by_id(cfg.HBRIDGE_PIN_LEFT), 
+            pins.pwm_pin_by_id(cfg.HBRIDGE_PIN_RIGHT))
+        throttle = Mini_HBridge_DC_Motor_PWM(
+            pins.pwm_pin_by_id(cfg.HBRIDGE_PIN_FWD), 
+            pins.pwm_pin_by_id(cfg.HBRIDGE_PIN_BWD))
 
         V.add(steering, inputs=['angle'])
         V.add(throttle, inputs=['throttle'])
 
     elif cfg.DRIVE_TRAIN_TYPE == "DC_TWO_WHEEL":
-        from donkeycar.parts.actuator import TwoWheelSteeringThrottle, Mini_HBridge_DC_Motor_PWM
+        left_motor = actuator.L298N_HBridge_2pin(
+            pins.pwm_pin_by_id(cfg.HBRIDGE_PIN_LEFT_FWD), 
+            pins.pwm_pin_by_id(cfg.HBRIDGE_PIN_LEFT_BWD))
+        right_motor = actuator.L298N_HBridge_2pin(
+            pins.pwm_pin_by_id(cfg.HBRIDGE_PIN_RIGHT_FWD), 
+            pins.pwm_pin_by_id(cfg.HBRIDGE_PIN_RIGHT_BWD))
 
-        left_motor = Mini_HBridge_DC_Motor_PWM(cfg.HBRIDGE_PIN_LEFT_FWD, cfg.HBRIDGE_PIN_LEFT_BWD)
-        right_motor = Mini_HBridge_DC_Motor_PWM(cfg.HBRIDGE_PIN_RIGHT_FWD, cfg.HBRIDGE_PIN_RIGHT_BWD)
-        two_wheel_control = TwoWheelSteeringThrottle()
+        two_wheel_control = actuator.TwoWheelSteeringThrottle()
 
         V.add(two_wheel_control,
                 inputs=['throttle', 'angle'],
@@ -588,11 +624,16 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
         V.add(right_motor, inputs=['right_motor_speed'])
 
     elif cfg.DRIVE_TRAIN_TYPE == "DC_TWO_WHEEL_L298N":
-        from donkeycar.parts.actuator import TwoWheelSteeringThrottle, L298N_HBridge_DC_Motor
+        left_motor = actuator.L298N_HBridge_3pin(
+            pins.output_pin_by_id(cfg.HBRIDGE_L298N_PIN_LEFT_FWD), 
+            pins.output_pin_by_id(cfg.HBRIDGE_L298N_PIN_LEFT_BWD), 
+            pins.pwm_pin_by_id(cfg.HBRIDGE_L298N_PIN_LEFT_EN))
+        right_motor = actuator.L298N_HBridge_3pin(
+            pins.output_pin_by_id(cfg.HBRIDGE_L298N_PIN_RIGHT_FWD), 
+            pins.output_pin_by_id(cfg.HBRIDGE_L298N_PIN_RIGHT_BWD), 
+            pins.pwm_pin_by_id(cfg.HBRIDGE_L298N_PIN_RIGHT_EN))
 
-        left_motor = L298N_HBridge_DC_Motor(cfg.HBRIDGE_L298N_PIN_LEFT_FWD, cfg.HBRIDGE_L298N_PIN_LEFT_BWD, cfg.HBRIDGE_L298N_PIN_LEFT_EN)
-        right_motor = L298N_HBridge_DC_Motor(cfg.HBRIDGE_L298N_PIN_RIGHT_FWD, cfg.HBRIDGE_L298N_PIN_RIGHT_BWD, cfg.HBRIDGE_L298N_PIN_RIGHT_EN)
-        two_wheel_control = TwoWheelSteeringThrottle()
+        two_wheel_control = actuator.TwoWheelSteeringThrottle()
 
         V.add(two_wheel_control,
                 inputs=['throttle', 'angle'],
@@ -601,7 +642,52 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
         V.add(left_motor, inputs=['left_motor_speed'])
         V.add(right_motor, inputs=['right_motor_speed'])
 
+    elif cfg.DRIVE_TRAIN_TYPE == "SERVO_HBRIDGE_2PIN":
+        #
+        # Servo for steering and HBridge motor driver in 2pin mode for motor
+        #
+        from donkeycar.parts.actuator import PWMSteering, PWMThrottle, PulseController
+        steering_controller = PulseController(
+            pwm_pin=pins.pwm_pin_by_id(cfg.PWM_STEERING_PIN),
+            pwm_scale=cfg.PWM_STEERING_SCALE, 
+            pwm_inverted=cfg.PWM_STEERING_INVERTED)
+        steering = PWMSteering(controller=steering_controller,
+                                        left_pulse=cfg.STEERING_LEFT_PWM, 
+                                        right_pulse=cfg.STEERING_RIGHT_PWM)
+
+        motor = actuator.L298N_HBridge_2pin(
+            pins.pwm_pin_by_id(cfg.HBRIDGE_2PIN_DUTY_FWD), 
+            pins.pwm_pin_by_id(cfg.HBRIDGE_2PIN_DUTY_BWD))
+
+        V.add(steering, inputs=['angle'], threaded=True)
+        V.add(motor, inputs=["throttle"])
+        
+    elif cfg.DRIVE_TRAIN_TYPE == "SERVO_HBRIDGE_3PIN":
+        #
+        # Servo for steering and HBridge motor driver in 3pin mode for motor
+        #
+        from donkeycar.parts.actuator import PWMSteering, PWMThrottle, PulseController
+        steering_controller = PulseController(
+            pwm_pin=pins.pwm_pin_by_id(cfg.PWM_STEERING_PIN),
+            pwm_scale=cfg.PWM_STEERING_SCALE, 
+            pwm_inverted=cfg.PWM_STEERING_INVERTED)
+        steering = PWMSteering(controller=steering_controller,
+                                        left_pulse=cfg.STEERING_LEFT_PWM, 
+                                        right_pulse=cfg.STEERING_RIGHT_PWM)
+
+        motor = actuator.L298N_HBridge_3pin(
+            pins.output_pin_by_id(cfg.HBRIDGE_3PIN_FWD), 
+            pins.output_pin_by_id(cfg.HBRIDGE_3PIN_BWD), 
+            pins.pwm_pin_by_id(cfg.HBRIDGE_3PIN_DUTY))
+
+        V.add(steering, inputs=['angle'], threaded=True)
+        V.add(motor, inputs=["throttle"])
+        
     elif cfg.DRIVE_TRAIN_TYPE == "SERVO_HBRIDGE_PWM":
+        #
+        # Thi driver is DEPRECATED in favor of 'DRIVE_TRAIN_TYPE == "SERVO_HBRIDGE_2PIN"'
+        # This driver will be removed in a future release
+        #
         from donkeycar.parts.actuator import ServoBlaster, PWMSteering
         steering_controller = ServoBlaster(cfg.STEERING_CHANNEL) #really pin
         # PWM pulse values should be in the range of 100 to 200
@@ -622,6 +708,10 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
         V.add(RoboHATDriver(cfg), inputs=['angle', 'throttle'])
     
     elif cfg.DRIVE_TRAIN_TYPE == "PIGPIO_PWM":
+        #
+        # Thi driver is DEPRECATED in favor of 'DRIVE_TRAIN_TYPE == "PWM_STEERING_THROTTLE"'
+        # This driver will be removed in a future release
+        #
         from donkeycar.parts.actuator import PWMSteering, PWMThrottle, PiGPIO_PWM
         steering_controller = PiGPIO_PWM(cfg.STEERING_PWM_PIN, freq=cfg.STEERING_PWM_FREQ, inverted=cfg.STEERING_PWM_INVERTED)
         steering = PWMSteering(controller=steering_controller,
