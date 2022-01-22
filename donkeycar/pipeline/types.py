@@ -39,7 +39,7 @@ class TubRecord(object):
         self.config = config
         self.base_path = base_path
         self.underlying = underlying
-        if config.FLIP_LEFT_RIGHT:
+        if config.FLIP_LEFT_RIGHT is not None and config.FLIP_LEFT_RIGHT:
             self.underlying['user/angle'] *= (-1)
         self._image: Optional[Any] = None
 
