@@ -101,6 +101,7 @@ class TubDataset(object):
                     record = TubRecord(cfg, tub.base_path, underlying)
                     if not self.train_filter or self.train_filter(record):
                         self.records.append(record)
+                self.config.FLIP_LEFT_RIGHT = False
                 record = TubRecord(self.config, tub.base_path, underlying)
                 if not self.train_filter or self.train_filter(record):
                     self.records.append(record)
