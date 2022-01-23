@@ -5,6 +5,7 @@ import numpy as np
 
 class AutoReverse(object):
     accepted_modes = {'local_angle', 'reversing'}
+
     def __init__(self):
         self.last_20_images = [np.zeros((120, 160, 3)) for _ in range(20)]
         self.counter = 0
@@ -30,8 +31,8 @@ class AutoReverse(object):
             )
             logging.info(f"AutoReverse {v}")
             if self.reverse_counter == 40:
-                    self.reverse_counter = 0
-                    return 'local_angle'
+                self.reverse_counter = 0
+                return 'local_angle'
             else:
                 return 'reversing'
 

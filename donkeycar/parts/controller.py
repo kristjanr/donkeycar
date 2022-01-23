@@ -1094,7 +1094,7 @@ class JoystickController(object):
             self.decrease_max_throttle()
         self.mode = mode
         if self.mode == 'reversing':
-            self.set_throttle(-1)
+            self.set_throttle(1)
         self.img_arr = img_arr
 
         '''
