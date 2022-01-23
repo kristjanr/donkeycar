@@ -243,7 +243,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
     # auto reverse when car not moving for some time
     auto_reverse = AutoReverse()
-    V.add(auto_acc, inputs=['user/mode', 'user/constant_throttle', 'user/throttle_scale', 'cam/image_array'], outputs=['auto/reverse'])
+    V.add(auto_reverse, inputs=['user/mode', 'user/constant_throttle', 'cam/image_array'], outputs=['auto/reverse'])
 
     #See if we should even run the pilot module.
     #This is only needed because the part run_condition only accepts boolean
