@@ -1092,7 +1092,8 @@ class JoystickController(object):
             self.increase_max_throttle()
         elif auto_scale is not None and auto_scale < 0:
             self.decrease_max_throttle()
-        self.mode = mode
+        if mode:
+            self.mode = mode
         self.img_arr = img_arr
 
         '''
