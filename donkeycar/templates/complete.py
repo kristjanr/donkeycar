@@ -230,7 +230,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
                     netwkJs = JoyStickSub(cfg.NETWORK_JS_SERVER_IP)
                     V.add(netwkJs, threaded=True)
                     ctr.js = netwkJs
-            V.add(ctr, inputs=['cam/image_array', 'auto/throttle_scale', 'auto/reverse'], outputs=['user/angle', 'user/throttle', 'user/mode', 'recording', 'user/constant_throttle', 'user/throttle_scale'],threaded=True)
+            V.add(ctr, inputs=['cam/image_array', 'auto/throttle_scale', 'user/mode'], outputs=['user/angle', 'user/throttle', 'user/mode', 'recording', 'user/constant_throttle', 'user/throttle_scale'],threaded=True)
         
 
     #this throttle filter will allow one tap back for esc reverse
@@ -243,7 +243,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
     # auto reverse when car not moving for some time
     auto_reverse = AutoReverse()
-    V.add(auto_reverse, inputs=['user/mode', 'user/constant_throttle', 'cam/image_array'], outputs=['auto/reverse'])
+    V.add(auto_reverse, inputs=['user/mode', 'user/constant_throttle', 'cam/image_array'], outputs=['user/mode'])
 
     #See if we should even run the pilot module.
     #This is only needed because the part run_condition only accepts boolean
@@ -508,6 +508,8 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
             elif mode == 'local_angle':
                 return pilot_angle if pilot_angle else 0.0, user_throttle
+            elif mode == 'reversing':
+                return pilot_angle * -1 if pilot_angle else 0.0, user_throttle
             else:
                 return pilot_angle if pilot_angle else 0.0, \
                        pilot_throttle * self.cfg.AI_THROTTLE_MULT if \
