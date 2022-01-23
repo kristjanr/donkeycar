@@ -33,7 +33,7 @@ class AutoAccelerate(object):
 
         logging.info(f"AutoAccelerate {v}")
 
-        if delta < 1:
+        if delta < 0.3:
             return 1
 
         return 0
