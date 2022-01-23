@@ -31,7 +31,6 @@ class AutoReverse(object):
             logging.info(f"AutoReverse {v}")
             if self.reverse_counter == 40:
                     self.reverse_counter = 0
-                    self.stopped_counter = 0
                     return 'local_angle'
             else:
                 return 'reversing'
@@ -56,6 +55,7 @@ class AutoReverse(object):
 
         if delta < 0.3:
             if self.stopped_counter == 3:
+                self.stopped_counter = 0
                 return 'reversing'
             else:
                 self.stopped_counter += 1

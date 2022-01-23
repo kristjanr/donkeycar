@@ -999,7 +999,7 @@ class JoystickController(object):
         #this value is often reversed, with positive value when pulling down
         self.last_throttle_axis_val = axis_val
         self.throttle = (self.throttle_dir * axis_val * self.throttle_scale)
-        #print("throttle", self.throttle)
+        print("throttle", self.throttle)
         self.on_throttle_changes()
 
 
@@ -1092,7 +1092,8 @@ class JoystickController(object):
             self.increase_max_throttle()
         elif auto_scale is not None and auto_scale < 0:
             self.decrease_max_throttle()
-        if mode == 'reversing':
+        self.mode = mode
+        if self.mode == 'reversing':
             self.set_throttle(-1)
         self.img_arr = img_arr
 
