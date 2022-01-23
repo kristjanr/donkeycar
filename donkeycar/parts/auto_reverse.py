@@ -23,9 +23,9 @@ class AutoReverse(object):
             if self.reverse_counter == 20:
                 self.reversing = False
                 self.reverse_counter = 0
-                return False
-            else:
                 return True
+            else:
+                return False
 
         self.last_20_images.append(image)
         self.last_20_images.pop(0)

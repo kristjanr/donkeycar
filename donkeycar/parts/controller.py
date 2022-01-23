@@ -1093,9 +1093,7 @@ class JoystickController(object):
         elif auto_scale is not None and auto_scale < 0:
             self.decrease_max_throttle()
         if reverse:
-            self.set_throttle(-1)
-        else:
-            self.set_throttle(1)
+            self.throttle *= -1
         self.img_arr = img_arr
 
         '''
