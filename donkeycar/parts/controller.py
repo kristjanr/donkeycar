@@ -1089,8 +1089,10 @@ class JoystickController(object):
 
 
     def run_threaded(self, img_arr=None, auto_scale=None):
-        if auto_scale:
-            self.throttle_scale += auto_scale
+        if auto_scale > 0:
+            self.increase_max_throttle()
+        elif auto_scale < 0:
+            self.decrease_max_throttle()
         self.img_arr = img_arr
 
         '''

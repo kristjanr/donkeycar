@@ -17,7 +17,7 @@ class AutoAccelerate(object):
         self.last_20_images.append(image)
         self.last_20_images.pop(0)
 
-        if self.counter % 20 != 0:
+        if self.counter % 5 != 0:
             return 0
 
         first_10_avg = np.array(self.last_20_images[:10]).mean()
@@ -34,7 +34,7 @@ class AutoAccelerate(object):
         logging.info(f"AutoAccelerate {v}")
 
         if delta < 1:
-            return 0.05
+            return 1
 
         return 0
 
