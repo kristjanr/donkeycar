@@ -28,7 +28,7 @@ class AutoAccelerate(object):
             last_10_avg=np.array(self.last_20_images[10:]).mean()
         )
 
-        logging.info(f"AutoAccelerate out {throttle_out}")
+        logging.info(f"AutoAccelerate {v}")
         return throttle_out
 
     def shutdown(self):
