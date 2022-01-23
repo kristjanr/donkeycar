@@ -509,7 +509,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
             elif mode == 'local_angle':
                 return pilot_angle if pilot_angle else 0.0, user_throttle
             elif mode == 'reversing':
-                return pilot_angle * -1 if pilot_angle else 0.0, user_throttle
+                return pilot_angle * -1 if pilot_angle else 0.0, user_throttle * -1
             else:
                 return pilot_angle if pilot_angle else 0.0, \
                        pilot_throttle * self.cfg.AI_THROTTLE_MULT if \
