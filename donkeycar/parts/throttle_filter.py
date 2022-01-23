@@ -11,16 +11,17 @@ class ThrottleFilter(object):
         self.last_throttle = 0.0
 
     def run(self, throttle_in):
-        v = dict(
-            throttle_in=throttle_in,
-            reverse_triggered=self.reverse_triggered,
-            last_throttle=self.last_throttle
-        )
-        logging.info("ThrottleFilter Start", v)
         if throttle_in is None:
             return throttle_in
 
         throttle_out = throttle_in
+
+        vs = dict(
+            throttle_in=throttle_in,
+            reverse_triggered=self.reverse_triggered,
+            last_throttle=self.last_throttle
+        )
+        logging.info(f"ThrottleFilter Start {vs}")
 
         if throttle_out < 0.0: # hetkel tagurdab
             if not self.reverse_triggered and self.last_throttle < 0.0: # ei ole hetkel triggerdatud ja eelnevalt tagurdas
@@ -31,12 +32,13 @@ class ThrottleFilter(object):
 
         self.last_throttle = throttle_out
 
-        v = dict(
+        ve = dict(
             throttle_out=throttle_out,
             reverse_triggered=self.reverse_triggered,
             last_throttle=self.last_throttle
         )
-        logging.info("ThrottleFilter End", v)
+        logging.info(f"ThrottleFilter End {ve}")
+
         return throttle_out
 
     def shutdown(self):
