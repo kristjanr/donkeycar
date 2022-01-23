@@ -26,7 +26,7 @@ class AutoReverse(object):
                 reversing=self.reversing,
             )
             logging.info(f"AutoReverse {v}")
-            if self.reverse_counter == 20:
+            if self.reverse_counter == 40:
                     self.reversing = False
                     self.reverse_counter = 0
                     self.stopped_counter = 0
@@ -53,7 +53,7 @@ class AutoReverse(object):
         logging.info(f"AutoReverse {v}")
 
         if delta < 0.3:
-            if self.stopped_counter == 4:
+            if self.stopped_counter == 3:
                 self.reversing = True
                 return True
             else:
