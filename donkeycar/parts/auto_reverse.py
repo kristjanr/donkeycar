@@ -34,13 +34,13 @@ class AutoReverse(object):
                 self.reverse_counter = 0
                 return 'local_angle'
             else:
-                return 'reversing'
+                return mode
 
         self.last_20_images.append(image)
         self.last_20_images.pop(0)
 
         if self.counter % 5 != 0:
-            return False
+            return mode
 
         first_10_avg = np.array(self.last_20_images[:10]).mean()
         last_10_avg = np.array(self.last_20_images[10:]).mean()
