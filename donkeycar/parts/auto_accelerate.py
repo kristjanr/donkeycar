@@ -8,6 +8,7 @@ class AutoAccelerate(object):
         self.last_20_images = [np.zeros((120, 160, 3)) for _ in range(20)]
         self.counter = 0
         self.constant_throttle = False
+        logging.info(f"AutoAccelerate started!")
 
     def run(self, mode, constant_throttle, throttle_scale, image):
         if mode != 'local_angle' or image is None or not constant_throttle:
