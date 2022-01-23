@@ -25,9 +25,6 @@ class AutoAccelerate(object):
 
         delta = abs(last_10_avg - first_10_avg)
         v = dict(
-            mode=mode,
-            first_10_avg=first_10_avg,
-            last_10_avg=last_10_avg,
             diff=delta
         )
 

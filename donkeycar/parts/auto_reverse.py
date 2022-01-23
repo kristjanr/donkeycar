@@ -20,10 +20,16 @@ class AutoReverse(object):
 
         if self.reversing:
             self.reverse_counter += 1
+            v = dict(
+                stopped_counter=self.stopped_counter,
+                reverse_counter=self.reverse_counter,
+                reversing=self.reversing,
+            )
+            logging.info(f"AutoReverse {v}")
             if self.reverse_counter == 20:
-                self.reversing = False
-                self.reverse_counter = 0
-                return True
+                    self.reversing = False
+                    self.reverse_counter = 0
+                    return True
             else:
                 return False
 
@@ -38,18 +44,16 @@ class AutoReverse(object):
 
         delta = abs(last_10_avg - first_10_avg)
         v = dict(
-            mode=mode,
-            first_10_avg=first_10_avg,
-            last_10_avg=last_10_avg,
+            stopped_counter=self.stopped_counter,
+            reverse_counter=self.reverse_counter,
+            reversing=self.reversing,
             diff=delta
         )
-
         logging.info(f"AutoReverse {v}")
 
         if delta < 0.3:
             if self.stopped_counter == 4:
                 self.reversing = True
-                self.reverse_counter = 1
                 return True
             else:
                 self.stopped_counter += 1
