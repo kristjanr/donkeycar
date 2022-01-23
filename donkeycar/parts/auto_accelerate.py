@@ -6,7 +6,7 @@ class AutoAccelerate(object):
         pass
 
     def run(self, throttle_in, mode, image):
-        img_shp = image.shape if image else None
+        img_shp = image.shape if image is not None else None
         v = dict(
             throttle_in=throttle_in,
             mode=mode,
