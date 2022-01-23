@@ -26,6 +26,7 @@ from donkeycar.parts.tub_v2 import TubWriter
 from donkeycar.parts.datastore import TubHandler
 from donkeycar.parts.controller import LocalWebController, WebFpv, JoystickController
 from donkeycar.parts.throttle_filter import ThrottleFilter
+from donkeycar.parts.auto_accelerate import AutoAccelerate
 from donkeycar.parts.behavior import BehaviorPart
 from donkeycar.parts.file_watcher import FileWatcher
 from donkeycar.parts.launch import AiLaunch
@@ -234,6 +235,10 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     #this throttle filter will allow one tap back for esc reverse
     th_filter = ThrottleFilter()
     V.add(th_filter, inputs=['user/throttle'], outputs=['user/throttle'])
+
+    # auto add throttle when car not moving
+    auto_acc = AutoAccelerate()
+    V.add(auto_acc, inputs=['user/throttle', 'user/mode', 'cam/image_array'], outputs=['user/throttle'])
 
     #See if we should even run the pilot module.
     #This is only needed because the part run_condition only accepts boolean
