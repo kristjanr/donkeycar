@@ -16,13 +16,6 @@ class ThrottleFilter(object):
 
         throttle_out = throttle_in
 
-        vs = dict(
-            throttle_in=throttle_in,
-            reverse_triggered=self.reverse_triggered,
-            last_throttle=self.last_throttle
-        )
-        logging.info(f"ThrottleFilter Start {vs}")
-
         if throttle_out < 0.0: # hetkel tagurdab
             if not self.reverse_triggered and self.last_throttle < 0.0: # ei ole hetkel triggerdatud ja eelnevalt tagurdas
                 throttle_out = 0.0 # jää seisma
@@ -31,13 +24,6 @@ class ThrottleFilter(object):
             self.reverse_triggered = False
 
         self.last_throttle = throttle_out
-
-        ve = dict(
-            throttle_out=throttle_out,
-            reverse_triggered=self.reverse_triggered,
-            last_throttle=self.last_throttle
-        )
-        logging.info(f"ThrottleFilter End {ve}")
 
         return throttle_out
 
