@@ -14,6 +14,10 @@ class AutoReverse(object):
 
     def run(self, mode, constant_throttle, image):
         if mode != 'local_angle' or image is None or not constant_throttle:
+            self.counter = 0
+            self.stopped_counter = 0
+            self.reversing = False
+            self.reverse_counter = 0
             return False
 
         self.counter += 1
