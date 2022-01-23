@@ -9,7 +9,7 @@ class AutoAccelerate(object):
         self.counter = 0
         self.constant_throttle = False
 
-    def run(self, mode, constant_throttle, image):
+    def run(self, mode, constant_throttle, throttle_scale, image):
         if mode != 'local_angle' or image is None or not constant_throttle:
             return 0
 
@@ -17,7 +17,7 @@ class AutoAccelerate(object):
         self.last_20_images.append(image)
         self.last_20_images.pop(0)
 
-        if self.counter % 5 != 0:
+        if self.counter % 5 != 0 or throttle_scale > 0.89:
             return 0
 
         first_10_avg = np.array(self.last_20_images[:10]).mean()
