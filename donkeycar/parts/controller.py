@@ -1088,10 +1088,10 @@ class JoystickController(object):
         self.chaos_monkey_steering = None
 
 
-    def run_threaded(self, img_arr=None, auto_scale=None):
-        if auto_scale > 0:
+    def run_threaded(self, img_arr=None, auto_scale=0):
+        if auto_scale is not None and auto_scale > 0:
             self.increase_max_throttle()
-        elif auto_scale < 0:
+        elif auto_scale is not None and auto_scale < 0:
             self.decrease_max_throttle()
         self.img_arr = img_arr
 
