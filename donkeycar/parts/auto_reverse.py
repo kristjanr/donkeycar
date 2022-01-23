@@ -29,6 +29,7 @@ class AutoReverse(object):
             if self.reverse_counter == 20:
                     self.reversing = False
                     self.reverse_counter = 0
+                    self.stopped_counter = 0
                     return True
             else:
                 return False
