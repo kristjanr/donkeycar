@@ -53,6 +53,13 @@ class MakeMovie(object):
 
         self.cfg = dk.load_config(conf)
         if 'CROP' in self.cfg.TRANSFORMATIONS:
+            crop_config = dict(
+                left=self.cfg.ROI_CROP_LEFT,
+                right=self.cfg.ROI_CROP_RIGHT,
+                bottom=self.cfg.ROI_CROP_BOTTOM,
+                top=self.cfg.ROI_CROP_TOP,
+            )
+            logger.info("Cropping!", crop_config)
             self.cropping = Augmentations.crop(left=self.cfg.ROI_CROP_LEFT,
                                                right=self.cfg.ROI_CROP_RIGHT,
                                                bottom=self.cfg.ROI_CROP_BOTTOM,
