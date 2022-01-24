@@ -222,7 +222,7 @@ class PyGameJoystick(object):
                 iBtn += 1
 
         return button, button_state, axis, axis_val
-        
+
     def set_deadzone(self, val):
         self.dead_zone = val
 
@@ -263,7 +263,7 @@ class RCReceiver:
             self.cbs.append(self.pi.callback(channel.pin, pigpio.EITHER_EDGE, self.cbf))
             if self.debug:
                 print(f'RCReceiver gpio {channel.pin} created')
-    
+
 
     def cbf(self, gpio, level, tick):
         import pigpio
@@ -276,11 +276,11 @@ class RCReceiver:
         :param tick: # of mu s since boot, 32 bit int
         """
         for channel in self.channels:
-            if gpio == channel.pin:            
-                if level == 1:                
-                    channel.high_tick = tick            
-                elif level == 0:                
-                    if channel.high_tick is not None:                    
+            if gpio == channel.pin:
+                if level == 1:
+                    channel.high_tick = tick
+                elif level == 0:
+                    if channel.high_tick is not None:
                         channel.tick = pigpio.tickDiff(channel.high_tick, tick)
 
     def pulse_width(self, high):
@@ -307,13 +307,13 @@ class RCReceiver:
             print('RC CH1 signal:', round(self.signals[0], 3), 'RC CH2 signal:', round(self.signals[1], 3), 'RC CH3 signal:', round(self.signals[2], 3))
 
         # check mode channel if present
-        if (self.signals[2] - self.jitter) > 0:  
+        if (self.signals[2] - self.jitter) > 0:
             self.mode = 'local'
         else:
             self.mode = 'user'
 
         # check throttle channel
-        if ((self.signals[1] - self.jitter) > 0) and self.RECORD: # is throttle above jitter level? If so, turn on auto-record 
+        if ((self.signals[1] - self.jitter) > 0) and self.RECORD: # is throttle above jitter level? If so, turn on auto-record
             is_action = True
         else:
             is_action = False
@@ -347,7 +347,7 @@ class JoystickCreator(Joystick):
 class PS3JoystickSixAd(Joystick):
     '''
     An interface to a physical PS3 joystick available at /dev/input/js0
-    Contains mapping that worked for Jetson Nano using sixad for PS3 controller's connection 
+    Contains mapping that worked for Jetson Nano using sixad for PS3 controller's connection
     '''
     def __init__(self, *args, **kwargs):
         super(PS3JoystickSixAd, self).__init__(*args, **kwargs)
@@ -371,7 +371,7 @@ class PS3JoystickSixAd(Joystick):
             0x121 : 'L3',
             0x122 : 'R3',
 
-            0x12c : "triangle", 
+            0x12c : "triangle",
             0x12d : "circle",
             0x12e : "cross",
             0x12f : 'square',
@@ -429,7 +429,7 @@ class PS3JoystickOld(Joystick):
             0x121 : 'L3',
             0x122 : 'R3',
 
-            0x12c : "triangle", 
+            0x12c : "triangle",
             0x12d : "circle",
             0x12e : "cross",
             0x12f : 'square',
@@ -1084,15 +1084,10 @@ class JoystickController(object):
 
     def chaos_monkey_off(self):
         self.chaos_monkey_steering = None
-
-    allowed_modes = {'reversing', 'local_angle'}
-
-    def run_threaded(self, img_arr=None, et=0, mode=False):
+    def run_threaded(self, img_arr=None, et=0):
         if et is not None and et:
             new_throttle = self.throttle + et
-            self.throttle = -1 if new_throttle < -1 else 1 if new_throttle > 1 else new_throttle
-        if mode in self.allowed_modes:
-            self.mode = mode
+            self.throttle = 0.7 if new_throttle < 0.7 else 1 if new_throttle > 1 else new_throttle
         self.img_arr = img_arr
 
         '''
