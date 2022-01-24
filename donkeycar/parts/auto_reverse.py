@@ -15,6 +15,8 @@ class AutoReverse(object):
         logging.info(f"AutoReverse started!")
 
     def run(self, mode, constant_throttle, image):
+        logging.info(f"AutoReverse mode {mode}")
+
         new_mode = mode
         if mode not in self.accepted_modes or image is None or not constant_throttle:
             self.stopped_counter = 0
