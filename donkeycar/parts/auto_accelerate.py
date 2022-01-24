@@ -16,7 +16,7 @@ class AutoAccelerate(object):
     def run(self, mode, constant_throttle, image):
         extra_throttle = 0
         if mode != 'local_angle' or image is None or not constant_throttle:
-                return extra_throttle
+            return extra_throttle
 
         self.counter += 1
         self.last_20_images.append(image)
@@ -33,6 +33,7 @@ class AutoAccelerate(object):
             self.accelerated = True
             extra_throttle = self.extra_throttle
         elif self.accelerated:
+            self.accelerated = False
             extra_throttle = -self.extra_throttle
 
         v = dict(

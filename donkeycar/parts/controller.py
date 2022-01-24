@@ -1092,8 +1092,7 @@ class JoystickController(object):
     def run_threaded(self, img_arr=None, et=0, mode=False):
         if et is not None and et:
             new_throttle = self.throttle + et
-            new_throttle = -1 if new_throttle < -1 else 1 if new_throttle > 1 else new_throttle
-            self.throttle = new_throttle
+            self.throttle = -1 if new_throttle < -1 else 1 if new_throttle > 1 else new_throttle
         if mode in self.allowed_modes:
             self.mode = mode
         self.img_arr = img_arr
