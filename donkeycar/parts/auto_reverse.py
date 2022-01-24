@@ -46,17 +46,16 @@ class AutoReverse(object):
         last_10_avg = np.array(self.last_20_images[10:]).mean()
 
         delta = abs(last_10_avg - first_10_avg)
-        v = dict(
-            stopped_counter=self.stopped_counter,
-            reverse_counter=self.reverse_counter,
-            mode=mode,
-            diff=delta
-        )
-        logging.info(f"AutoReverse {v}")
-
         if delta < 0.3:
             if self.stopped_counter == 3:
                 self.stopped_counter = 0
+                v = dict(
+                    stopped_counter=self.stopped_counter,
+                    reverse_counter=self.reverse_counter,
+                    mode=mode,
+                    diff=delta
+                )
+                logging.info(f"AutoReverse {v}")
                 return 'reversing'
             else:
                 self.stopped_counter += 1
