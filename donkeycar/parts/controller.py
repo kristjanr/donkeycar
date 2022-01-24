@@ -2,8 +2,6 @@ import os
 import array
 import time
 import struct
-import random
-from threading import Thread
 import logging
 
 from prettytable import PrettyTable

@@ -230,7 +230,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
                     netwkJs = JoyStickSub(cfg.NETWORK_JS_SERVER_IP)
                     V.add(netwkJs, threaded=True)
                     ctr.js = netwkJs
-            V.add(ctr, inputs=['cam/image_array', 'auto/extra_throttle', 'user/mode'], outputs=['user/angle', 'user/throttle', 'user/mode', 'recording', 'user/constant_throttle'],threaded=True)
+            V.add(ctr, inputs=['cam/image_array', 'auto/extra_throttle'], outputs=['user/angle', 'user/throttle', 'user/mode', 'recording', 'user/constant_throttle'],threaded=True)
         
 
     #this throttle filter will allow one tap back for esc reverse
@@ -243,7 +243,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
     # auto reverse when car not moving for some time
     auto_reverse = AutoReverse()
-    V.add(auto_reverse, inputs=['user/mode', 'user/constant_throttle', 'cam/image_array'], outputs=['user/mode'])
+    V.add(auto_reverse, inputs=['user/mode', 'auto/reverse', 'user/constant_throttle', 'cam/image_array'], outputs=['auto/reverse'])
 
     #See if we should even run the pilot module.
     #This is only needed because the part run_condition only accepts boolean
@@ -502,14 +502,14 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     class DriveMode:
         def run(self, mode,
                     user_angle, user_throttle,
-                    pilot_angle, pilot_throttle):
+                    pilot_angle, pilot_throttle, auto_reverse=False):
             if mode == 'user':
                 return user_angle, user_throttle
 
             elif mode == 'local_angle':
+                if auto_reverse:
+                    return pilot_angle * -1 if pilot_angle else 0.0, user_throttle * -1
                 return pilot_angle if pilot_angle else 0.0, user_throttle
-            elif mode == 'reversing':
-                return pilot_angle * -1 if pilot_angle else 0.0, user_throttle * -1
             else:
                 return pilot_angle if pilot_angle else 0.0, \
                        pilot_throttle * self.cfg.AI_THROTTLE_MULT if \
@@ -517,7 +517,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
     V.add(DriveMode(),
           inputs=['user/mode', 'user/angle', 'user/throttle',
-                  'pilot/angle', 'pilot/throttle'],
+                  'pilot/angle', 'pilot/throttle', 'auto/reverse'],
           outputs=['angle', 'throttle'])
 
 
