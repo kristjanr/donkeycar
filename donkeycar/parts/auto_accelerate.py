@@ -11,8 +11,6 @@ class AutoAccelerate(object):
         self.accelerated = True
         self.extra_throttle = 0.1
 
-    logging.info(f"AutoAccelerate started!")
-
     def run(self, mode, constant_throttle, image):
         extra_throttle = 0
         if mode != 'local_angle' or image is None or not constant_throttle:

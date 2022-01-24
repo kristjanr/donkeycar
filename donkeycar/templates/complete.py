@@ -230,7 +230,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
                     netwkJs = JoyStickSub(cfg.NETWORK_JS_SERVER_IP)
                     V.add(netwkJs, threaded=True)
                     ctr.js = netwkJs
-            V.add(ctr, inputs=['cam/image_array', 'auto/extra_throttle'], outputs=['user/angle', 'user/throttle', 'user/mode', 'recording', 'user/constant_throttle'],threaded=True)
+            V.add(ctr, inputs=['cam/image_array'], outputs=['user/angle', 'user/throttle', 'user/mode', 'recording', 'user/constant_throttle'],threaded=True)
         
 
     #this throttle filter will allow one tap back for esc reverse
@@ -502,14 +502,16 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     class DriveMode:
         def run(self, mode,
                     user_angle, user_throttle,
-                    pilot_angle, pilot_throttle, auto_reverse=False):
+                    pilot_angle, pilot_throttle, auto_reverse=False, auto_extra_throttle=0):
             if mode == 'user':
                 return user_angle, user_throttle
 
             elif mode == 'local_angle':
+                angle_and_throttle = [pilot_angle if pilot_angle else 0.0, user_throttle]
                 if auto_reverse:
-                    return pilot_angle * -1 if pilot_angle else 0.0, user_throttle * -1
-                return pilot_angle if pilot_angle else 0.0, user_throttle
+                    angle_and_throttle *= -1
+                angle_and_throttle[1] += auto_extra_throttle
+                return angle_and_throttle
             else:
                 return pilot_angle if pilot_angle else 0.0, \
                        pilot_throttle * self.cfg.AI_THROTTLE_MULT if \
@@ -517,7 +519,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
     V.add(DriveMode(),
           inputs=['user/mode', 'user/angle', 'user/throttle',
-                  'pilot/angle', 'pilot/throttle', 'auto/reverse'],
+                  'pilot/angle', 'pilot/throttle', 'auto/reverse', 'auto/extra_throttle'],
           outputs=['angle', 'throttle'])
 
 
