@@ -1087,12 +1087,12 @@ class JoystickController(object):
     def chaos_monkey_off(self):
         self.chaos_monkey_steering = None
 
-    def run_threaded(self, img_arr=None, auto_scale=0, mode=False):
-        if auto_scale is not None and auto_scale > 0:
-            self.increase_max_throttle()
-        elif auto_scale is not None and auto_scale < 0:
-            self.decrease_max_throttle()
-        if mode == 'reversing':
+    allowed_modes = {'reversing', 'local_angle'}
+
+    def run_threaded(self, img_arr=None, extra_throttle=0, mode=False):
+        if extra_throttle is not None and extra_throttle:
+            self.throttle += extra_throttle
+        if mode in self.allowed_modes:
             self.mode = mode
         self.img_arr = img_arr
 
@@ -1120,7 +1120,7 @@ class JoystickController(object):
         if self.chaos_monkey_steering is not None:
             return self.chaos_monkey_steering, self.throttle, self.mode, False
 
-        return self.angle, self.throttle, self.mode, self.recording, self.constant_throttle, self.throttle_scale
+        return self.angle, self.throttle, self.mode, self.recording, self.constant_throttle
 
 
     def run(self, img_arr=None):

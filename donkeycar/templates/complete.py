@@ -230,7 +230,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
                     netwkJs = JoyStickSub(cfg.NETWORK_JS_SERVER_IP)
                     V.add(netwkJs, threaded=True)
                     ctr.js = netwkJs
-            V.add(ctr, inputs=['cam/image_array', 'auto/throttle_scale', 'user/mode'], outputs=['user/angle', 'user/throttle', 'user/mode', 'recording', 'user/constant_throttle', 'user/throttle_scale'],threaded=True)
+            V.add(ctr, inputs=['cam/image_array', 'auto/extra_throttle', 'user/mode'], outputs=['user/angle', 'user/throttle', 'user/mode', 'recording', 'user/constant_throttle'],threaded=True)
         
 
     #this throttle filter will allow one tap back for esc reverse
@@ -239,7 +239,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
 
     # auto increase throttle scale when car not moving
     auto_acc = AutoAccelerate()
-    V.add(auto_acc, inputs=['user/mode', 'user/constant_throttle', 'user/throttle_scale', 'cam/image_array'], outputs=['auto/throttle_scale'])
+    V.add(auto_acc, inputs=['user/mode', 'user/constant_throttle', 'cam/image_array'], outputs=['auto/extra_throttle'])
 
     # auto reverse when car not moving for some time
     auto_reverse = AutoReverse()
