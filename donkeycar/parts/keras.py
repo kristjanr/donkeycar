@@ -903,9 +903,9 @@ class Keras3D_CNN(KerasPilot):
 
 
 class Keras3D_CNNOnlySteering(Keras3D_CNN):
-    def __init__(self, *args):
-        super(Keras3D_CNNOnlySteering, self).__init__(*args)
-        self.num_outputs = 1
+    def __init__(self, **kwargs):
+        kwargs['num_outputs'] = 1
+        super(Keras3D_CNNOnlySteering, self).__init__(**kwargs)
 
     def y_transform(self, records: Union[TubRecord, List[TubRecord]]) -> XY:
         """ Only return the last entry of angle"""
