@@ -84,11 +84,11 @@ class ImageAugmentation:
             be used only in training. """
 
         if aug_type == 'CROP':
-            logger.info(f'Creating augmentation {aug_type} with ROI_CROP ' 
-                        f'L: {config.ROI_CROP_LEFT}, '
-                        f'R: {config.ROI_CROP_RIGHT}, '
-                        f'B: {config.ROI_CROP_BOTTOM}, ' 
-                        f'T: {config.ROI_CROP_TOP}')
+            # logger.info(f'Creating augmentation {aug_type} with ROI_CROP '
+            #             f'L: {config.ROI_CROP_LEFT}, '
+            #             f'R: {config.ROI_CROP_RIGHT}, '
+            #             f'B: {config.ROI_CROP_BOTTOM}, '
+            #             f'T: {config.ROI_CROP_TOP}')
 
             return Augmentations.crop(left=config.ROI_CROP_LEFT,
                                       right=config.ROI_CROP_RIGHT,

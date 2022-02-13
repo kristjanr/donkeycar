@@ -373,21 +373,10 @@ class KerasLinear(KerasPilot):
         return shapes
 
 
-class KerasLinearOnlySteeringMAELoss(KerasLinear):
-    def compile(self):
-        weights = {"n_outputs0": 1.0, "n_outputs1": 0.0}
-        self.interpreter.compile(optimizer=self.optimizer, loss='mae', loss_weights=weights)
-
-
 class KerasLinearOnlySteering(KerasLinear):
     def compile(self):
         weights = {"n_outputs0": 1.0, "n_outputs1": 0.0}
         self.interpreter.compile(optimizer=self.optimizer, loss='mse', loss_weights=weights)
-
-
-class KerasLinearMAELoss(KerasLinear):
-    def compile(self):
-        self.interpreter.compile(optimizer=self.optimizer, loss='mae')
 
 
 class KerasMemory(KerasLinear):
@@ -484,6 +473,12 @@ class KerasMemory(KerasLinear):
         """ For printing model initialisation """
         return super().__str__() \
             + f'-L:{self.mem_length}-D:{self.mem_depth}'
+
+
+class KerasMemoryOnlySteering(KerasMemory):
+    def compile(self):
+        weights = {"n_outputs0": 1.0, "n_outputs1": 0.0}
+        self.interpreter.compile(optimizer=self.optimizer, loss='mse', loss_weights=weights)
 
 
 class KerasInferred(KerasPilot):
@@ -810,6 +805,12 @@ class KerasLSTM(KerasPilot):
         return f'{super().__str__()}-L:{self.seq_length}'
 
 
+class KerasLSTMOnlySteering(KerasLSTM):
+    def compile(self):
+        weights = {"n_outputs0": 1.0, "n_outputs1": 0.0}
+        self.interpreter.compile(optimizer=self.optimizer, loss='mse', loss_weights=weights)
+
+
 class Keras3D_CNN(KerasPilot):
     def __init__(self,
                  interpreter: Interpreter = KerasInterpreter(),
@@ -896,6 +897,12 @@ class Keras3D_CNN(KerasPilot):
         shapes = ({'img_in': tf.TensorShape(img_shape)},
                   {'outputs': tf.TensorShape([self.num_outputs])})
         return shapes
+
+
+class Keras3D_CNNOnlySteering(Keras3D_CNN):
+    def compile(self):
+        weights = {"n_outputs0": 1.0, "n_outputs1": 0.0}
+        self.interpreter.compile(optimizer=self.optimizer, loss='mse', loss_weights=weights)
 
 
 class KerasLatent(KerasPilot):

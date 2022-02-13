@@ -175,8 +175,6 @@ def load_pil_image(filename, cfg):
 
         if cfg.IMAGE_DEPTH == 1:
             img = img.convert('L')
-        if cfg.FLIP_LEFT_RIGHT:
-            img = img.transpose(Image.FLIP_LEFT_RIGHT)
         return img
 
     except Exception as e:
@@ -436,7 +434,7 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
     '''
     from donkeycar.parts.keras import KerasCategorical, KerasLinear, \
         KerasInferred, KerasIMU, KerasMemory, KerasBehavioral, KerasLocalizer, \
-        KerasLSTM, Keras3D_CNN, KerasLinearOnlySteeringMAELoss, KerasLinearOnlySteering, KerasLinearMAELoss
+        KerasLSTM, Keras3D_CNN, KerasLinearOnlySteering, KerasMemoryOnlySteering, KerasLSTMOnlySteering, Keras3D_CNNOnlySteering
     from donkeycar.parts.interpreter import KerasInterpreter, TfLite, TensorRT
 
     if model_type is None:
@@ -455,12 +453,8 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
     used_model_type = EqMemorizedString(used_model_type)
     if used_model_type == "linear":
         kl = KerasLinear(interpreter=interpreter, input_shape=input_shape)
-    elif used_model_type == "linear-steering-mae":
-        kl = KerasLinearOnlySteeringMAELoss(interpreter=interpreter, input_shape=input_shape)
     elif used_model_type == "linear-steering":
         kl = KerasLinearOnlySteering(interpreter=interpreter, input_shape=input_shape)
-    elif used_model_type == "linear-mae":
-        kl = KerasLinearMAELoss(interpreter=interpreter, input_shape=input_shape)
     elif used_model_type == "categorical":
         kl = KerasCategorical(
             interpreter=interpreter,
@@ -475,6 +469,11 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
         mem_depth = getattr(cfg, 'MEM_DEPTH', 0)
         kl = KerasMemory(interpreter=interpreter, input_shape=input_shape,
                          mem_length=mem_length, mem_depth=mem_depth)
+    elif used_model_type == "memory-steering":
+        mem_length = getattr(cfg, 'SEQUENCE_LENGTH', 3)
+        mem_depth = getattr(cfg, 'MEM_DEPTH', 0)
+        kl = KerasMemoryOnlySteering(interpreter=interpreter, input_shape=input_shape,
+                         mem_length=mem_length, mem_depth=mem_depth)
     elif used_model_type == "behavior":
         kl = KerasBehavioral(
             interpreter=interpreter,
@@ -487,8 +486,14 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
     elif used_model_type == 'rnn':
         kl = KerasLSTM(interpreter=interpreter, input_shape=input_shape,
                        seq_length=cfg.SEQUENCE_LENGTH)
+    elif used_model_type == 'rnn-steering':
+        kl = KerasLSTMOnlySteering(interpreter=interpreter, input_shape=input_shape,
+                       seq_length=cfg.SEQUENCE_LENGTH)
     elif used_model_type == '3d':
         kl = Keras3D_CNN(interpreter=interpreter, input_shape=input_shape,
+                         seq_length=cfg.SEQUENCE_LENGTH)
+    elif used_model_type == '3d-steering':
+        kl = Keras3D_CNNOnlySteering(interpreter=interpreter, input_shape=input_shape,
                          seq_length=cfg.SEQUENCE_LENGTH)
     else:
         known = [k + u for k in ('', 'tflite_', 'tensorrt_')

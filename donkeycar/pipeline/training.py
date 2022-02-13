@@ -114,8 +114,9 @@ def train(cfg: Config, tub_paths: str, model: str = None,
     all_tub_paths = [os.path.expanduser(tub) for tub in tubs]
     dataset = TubDataset(config=cfg, tub_paths=all_tub_paths,
                          seq_size=kl.seq_size())
+    do_shuffle = model_type not in {'memory-steering', 'rnn-steering', '3d-steering'}
     training_records, validation_records \
-        = train_test_split(dataset.get_records(), shuffle=True,
+        = train_test_split(dataset.get_records(), shuffle=do_shuffle,
                            test_size=(1. - cfg.TRAIN_TEST_SPLIT))
     print(f'Records # Training {len(training_records)}')
     print(f'Records # Validation {len(validation_records)}')
