@@ -74,7 +74,7 @@ setup(name='donkeycar',
               'pandas',
               'pyyaml',
               'plotly',
-              'imgaug'
+              'imgaug',
               'wandb',
           ],
           'dev': [
