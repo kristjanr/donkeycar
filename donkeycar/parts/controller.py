@@ -13,7 +13,10 @@ from donkeycar.parts.web_controller.web import WebFpv
 
 class Joystick(object):
     '''
-    An interface to a physical joystick
+    An interface to a physical joystick.
+    The joystick holds available buttons
+    and axis; both their names and values
+    and can be polled to state changes.
     '''
     def __init__(self, dev_fn='/dev/input/js0'):
         self.axis_states = {}
@@ -27,6 +30,10 @@ class Joystick(object):
 
 
     def init(self):
+        """
+        Query available buttons and axes given
+        a path in the linux device tree.
+        """
         try:
             from fcntl import ioctl
         except ModuleNotFoundError:
@@ -292,7 +299,12 @@ class RCReceiver:
         else:
             return 0.0
 
-    def run(self):
+    def run(self, mode=None, recording=None):
+        """
+        :param mode: default user/mode
+        :param recording: default recording mode
+        """
+
         i = 0
         for channel in self.channels:
             # signal is a value in [0, (MAX_OUT-MIN_OUT)]
@@ -310,13 +322,15 @@ class RCReceiver:
         if (self.signals[2] - self.jitter) > 0:
             self.mode = 'local'
         else:
-            self.mode = 'user'
+            # pass though value if provided
+            self.mode = mode if mode is not None else 'user'
 
         # check throttle channel
         if ((self.signals[1] - self.jitter) > 0) and self.RECORD: # is throttle above jitter level? If so, turn on auto-record
             is_action = True
         else:
-            is_action = False
+            # pass through default value
+            is_action = recording if recording is not None else False
         return self.signals[0], self.signals[1], self.mode, is_action
 
     def shutdown(self):
@@ -801,6 +815,7 @@ class RC3ChanJoystick(Joystick):
 
 class JoystickController(object):
     '''
+    Class to map joystick buttons and axes to functions.
     JoystickController is a base class. You will not use this class directly,
     but instantiate a flavor based on your joystick type. See classes following this.
 
@@ -823,9 +838,11 @@ class JoystickController(object):
                  dev_fn='/dev/input/js0',
                  auto_record_on_throttle=True):
 
+        self.img_arr = None
         self.angle = 0.0
         self.throttle = 0.0
         self.mode = 'user'
+        self.mode_latch = None
         self.poll_delay = poll_delay
         self.running = True
         self.last_throttle_axis_val = 0
@@ -1071,6 +1088,7 @@ class JoystickController(object):
             self.mode = 'local'
         else:
             self.mode = 'user'
+        self.mode_latch = self.mode
         print('new mode:', self.mode)
 
 
@@ -1084,8 +1102,26 @@ class JoystickController(object):
 
     def chaos_monkey_off(self):
         self.chaos_monkey_steering = None
-    def run_threaded(self, img_arr=None):
+
+
+    def run_threaded(self, img_arr=None, mode=None, recording=None):
+        """
+        :param img_arr: current camera image or None
+        :param mode: default user/mode
+        :param recording: default recording mode
+        """
         self.img_arr = img_arr
+
+        #
+        # enforce defaults if they are not none.
+        #
+        if mode is not None:
+            self.mode = mode
+        if self.mode_latch is not None:
+            self.mode = self.mode_latch
+            self.mode_latch = None
+        if recording is not None:
+            self.recording = recording
 
         '''
         process E-Stop state machine
@@ -1114,9 +1150,8 @@ class JoystickController(object):
         return self.angle, self.throttle, self.mode, self.recording, self.constant_throttle
 
 
-    def run(self, img_arr=None):
-        raise Exception("We expect for this part to be run with the threaded=True argument.")
-        return None, None, None, None
+    def run(self, img_arr=None, mode=None, recording=None):
+        return self.run_threaded(img_arr, mode, recording)
 
 
     def shutdown(self):
@@ -1127,7 +1162,9 @@ class JoystickController(object):
 
 class JoystickCreatorController(JoystickController):
     '''
-    A Controller object helps create a new controller object and mapping
+    A Controller object helps create a new controller object and mapping.
+    This is used in management/joystic_creator when mapping
+    a custom joystick.
     '''
     def __init__(self, *args, **kwargs):
         super(JoystickCreatorController, self).__init__(*args, **kwargs)

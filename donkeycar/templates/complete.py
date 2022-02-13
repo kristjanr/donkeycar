@@ -198,10 +198,10 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     ctr = LocalWebController(port=cfg.WEB_CONTROL_PORT, mode=cfg.WEB_INIT_MODE)
 
     V.add(ctr,
-          inputs=['cam/image_array', 'tub/num_records', 'user/mode', 'recording'],
-          outputs=['user/angle', 'user/throttle', 'user/mode', 'recording'],
-          threaded=True)
-
+        inputs=['cam/image_array', 'tub/num_records', 'user/mode', 'recording'],
+        outputs=['user/angle', 'user/throttle', 'user/mode', 'recording'],
+        threaded=True)
+        
     if use_joystick or cfg.USE_JOYSTICK_AS_DEFAULT:
         #modify max_throttle closer to 1.0 to have more power
         #modify steering_scale lower than 1.0 to have less responsive steering
@@ -238,7 +238,7 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
                 inputs=['cam/image_array', 'user/mode', 'recording'],
                 outputs=['user/angle', 'user/throttle', 'user/mode', 'recording'],
                 threaded=True)
-
+        
 
     #this throttle filter will allow one tap back for esc reverse
     th_filter = ThrottleFilter()
@@ -569,17 +569,17 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
             pwm_scale=cfg.PWM_STEERING_SCALE,
             pwm_inverted=cfg.PWM_STEERING_INVERTED)
         steering = PWMSteering(controller=steering_controller,
-                               left_pulse=cfg.STEERING_LEFT_PWM,
-                               right_pulse=cfg.STEERING_RIGHT_PWM)
+                                        left_pulse=cfg.STEERING_LEFT_PWM,
+                                        right_pulse=cfg.STEERING_RIGHT_PWM)
 
         throttle_controller = PulseController(
             pwm_pin=pins.pwm_pin_by_id(cfg.PWM_THROTTLE_PIN),
             pwm_scale=cfg.PWM_THROTTLE_SCALE,
             pwm_inverted=cfg.PWM_THROTTLE_INVERTED)
         throttle = PWMThrottle(controller=throttle_controller,
-                               max_pulse=cfg.THROTTLE_FORWARD_PWM,
-                               zero_pulse=cfg.THROTTLE_STOPPED_PWM,
-                               min_pulse=cfg.THROTTLE_REVERSE_PWM)
+                                            max_pulse=cfg.THROTTLE_FORWARD_PWM,
+                                            zero_pulse=cfg.THROTTLE_STOPPED_PWM,
+                                            min_pulse=cfg.THROTTLE_REVERSE_PWM)
         V.add(steering, inputs=['angle'], threaded=True)
         V.add(throttle, inputs=['throttle'], threaded=True)
 
@@ -661,8 +661,8 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
             pwm_scale=cfg.PWM_STEERING_SCALE,
             pwm_inverted=cfg.PWM_STEERING_INVERTED)
         steering = PWMSteering(controller=steering_controller,
-                               left_pulse=cfg.STEERING_LEFT_PWM,
-                               right_pulse=cfg.STEERING_RIGHT_PWM)
+                                        left_pulse=cfg.STEERING_LEFT_PWM,
+                                        right_pulse=cfg.STEERING_RIGHT_PWM)
 
         motor = actuator.L298N_HBridge_2pin(
             pins.pwm_pin_by_id(cfg.HBRIDGE_2PIN_DUTY_FWD),
@@ -681,8 +681,8 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
             pwm_scale=cfg.PWM_STEERING_SCALE,
             pwm_inverted=cfg.PWM_STEERING_INVERTED)
         steering = PWMSteering(controller=steering_controller,
-                               left_pulse=cfg.STEERING_LEFT_PWM,
-                               right_pulse=cfg.STEERING_RIGHT_PWM)
+                                        left_pulse=cfg.STEERING_LEFT_PWM,
+                                        right_pulse=cfg.STEERING_RIGHT_PWM)
 
         motor = actuator.L298N_HBridge_3pin(
             pins.output_pin_by_id(cfg.HBRIDGE_3PIN_FWD),
