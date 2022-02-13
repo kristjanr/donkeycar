@@ -153,14 +153,14 @@ class KerasPilot(ABC):
               verbose: int = 1,
               min_delta: float = .0005,
               patience: int = 5,
-              show_plot: bool = False) -> tf.keras.callbacks.History:
+              show_plot: bool = False,
+              add_wandb_callback=False) -> tf.keras.callbacks.History:
         """
         trains the model
         """
         assert isinstance(self.interpreter, KerasInterpreter)
         model = self.interpreter.model
         self.compile()
-        from wandb.keras import WandbCallback
         callbacks = [
             EarlyStopping(monitor='val_loss',
                           patience=patience,
@@ -169,7 +169,10 @@ class KerasPilot(ABC):
                             filepath=model_path,
                             save_best_only=True,
                             verbose=verbose),
-            WandbCallback()]
+        ]
+        if add_wandb_callback:
+            from wandb.keras import WandbCallback
+            callbacks.append(WandbCallback())
 
         history: tf.keras.callbacks.History = model.fit(
             x=train_data,
