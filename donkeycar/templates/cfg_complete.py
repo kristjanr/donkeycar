@@ -302,8 +302,7 @@ LIDAR_UPPER_LIMIT = 270
 
 #TRAINING
 
-ADD_MIRROR = False # should we double the training data by adding mirrored images/angles on the fly?
-FLIP_LEFT_RIGHT = False
+WANDB_ENABLED = False
 
 # The default AI framework to use. Choose from (tensorflow|pytorch)
 DEFAULT_AI_FRAMEWORK = 'tensorflow'

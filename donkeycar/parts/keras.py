@@ -903,9 +903,19 @@ class Keras3D_CNN(KerasPilot):
 
 
 class Keras3D_CNNOnlySteering(Keras3D_CNN):
-    def compile(self):
-        weights = {"n_outputs0": 1.0, "n_outputs1": 0.0}
-        self.interpreter.compile(optimizer=self.optimizer, loss='mse', loss_weights=weights)
+    def __init__(self, *args):
+        super(Keras3D_CNNOnlySteering, self).__init__(*args)
+        self.num_outputs = 1
+
+    def y_transform(self, records: Union[TubRecord, List[TubRecord]]) -> XY:
+        """ Only return the last entry of angle"""
+        assert isinstance(records, list), 'List[TubRecord] expected'
+        angle = records[-1].underlying['user/angle']
+        return angle
+
+    def y_translate(self, y: XY) -> Dict[str, Union[float, List[float]]]:
+        assert isinstance(y, float), 'Expected float'
+        return {'angle': [y]}
 
 
 class KerasLatent(KerasPilot):
@@ -1160,6 +1170,7 @@ def rnn_lstm(seq_length=3, num_outputs=2, input_shape=(120, 160, 3)):
 
 
 def build_3d_cnn(input_shape, s, num_outputs):
+    logger.info(f'input_shape {input_shape} num_outputs {num_outputs}')
     """
     Credit: https://github.com/jessecha/DNRacing/blob/master/3D_CNN_Model/model.py
 
