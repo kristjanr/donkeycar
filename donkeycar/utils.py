@@ -434,7 +434,7 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
     '''
     from donkeycar.parts.keras import KerasCategorical, KerasLinear, \
         KerasInferred, KerasIMU, KerasMemory, KerasBehavioral, KerasLocalizer, \
-        KerasLSTM, Keras3D_CNN, KerasLinearOnlySteering, KerasMemoryOnlySteering, KerasLSTMOnlySteering, Keras3D_CNNOnlySteering
+        KerasLSTM, Keras3D_CNN, KerasLinearOnlySteering, KerasLSTMOnlySteering, Keras3D_CNNOnlySteering
     from donkeycar.parts.interpreter import KerasInterpreter, TfLite, TensorRT
 
     if model_type is None:
@@ -468,11 +468,6 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
         mem_length = getattr(cfg, 'SEQUENCE_LENGTH', 3)
         mem_depth = getattr(cfg, 'MEM_DEPTH', 0)
         kl = KerasMemory(interpreter=interpreter, input_shape=input_shape,
-                         mem_length=mem_length, mem_depth=mem_depth)
-    elif used_model_type == "memory-steering":
-        mem_length = getattr(cfg, 'SEQUENCE_LENGTH', 3)
-        mem_depth = getattr(cfg, 'MEM_DEPTH', 0)
-        kl = KerasMemoryOnlySteering(interpreter=interpreter, input_shape=input_shape,
                          mem_length=mem_length, mem_depth=mem_depth)
     elif used_model_type == "behavior":
         kl = KerasBehavioral(
