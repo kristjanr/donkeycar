@@ -478,12 +478,6 @@ class KerasMemory(KerasLinear):
             + f'-L:{self.mem_length}-D:{self.mem_depth}'
 
 
-class KerasMemoryOnlySteering(KerasMemory):
-    def compile(self):
-        weights = {"n_outputs0": 1.0, "n_outputs1": 0.0}
-        self.interpreter.compile(optimizer=self.optimizer, loss='mse', loss_weights=weights)
-
-
 class KerasInferred(KerasPilot):
     def __init__(self,
                  interpreter: Interpreter = KerasInterpreter(),
@@ -809,9 +803,24 @@ class KerasLSTM(KerasPilot):
 
 
 class KerasLSTMOnlySteering(KerasLSTM):
-    def compile(self):
-        weights = {"n_outputs0": 1.0, "n_outputs1": 0.0}
-        self.interpreter.compile(optimizer=self.optimizer, loss='mse', loss_weights=weights)
+    def __init__(self, **kwargs):
+        kwargs['num_outputs'] = 1
+        super().__init__(**kwargs)
+
+    def y_transform(self, records: Union[TubRecord, List[TubRecord]]) -> XY:
+        """ Only return the last entry of angle"""
+        assert isinstance(records, list), 'List[TubRecord] expected'
+        angle = records[-1].underlying['user/angle']
+        return angle
+
+    def y_translate(self, y: XY) -> Dict[str, Union[float, List[float]]]:
+        assert isinstance(y, float), 'Expected float'
+        return {'model_outputs': [y]}
+
+    def interpreter_to_output(self, interpreter_out) \
+            -> Tuple[Union[float, np.ndarray], ...]:
+        steering = interpreter_out[0]
+        return (steering,)
 
 
 class Keras3D_CNN(KerasPilot):
@@ -905,7 +914,7 @@ class Keras3D_CNN(KerasPilot):
 class Keras3D_CNNOnlySteering(Keras3D_CNN):
     def __init__(self, **kwargs):
         kwargs['num_outputs'] = 1
-        super(Keras3D_CNNOnlySteering, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def y_transform(self, records: Union[TubRecord, List[TubRecord]]) -> XY:
         """ Only return the last entry of angle"""
@@ -915,7 +924,12 @@ class Keras3D_CNNOnlySteering(Keras3D_CNN):
 
     def y_translate(self, y: XY) -> Dict[str, Union[float, List[float]]]:
         assert isinstance(y, float), 'Expected float'
-        return {'angle': [y]}
+        return {'outputs': [y]}
+
+    def interpreter_to_output(self, interpreter_out) \
+            -> Tuple[Union[float, np.ndarray], ...]:
+        steering = interpreter_out[0]
+        return (steering,)
 
 
 class KerasLatent(KerasPilot):
