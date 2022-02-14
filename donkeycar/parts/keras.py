@@ -822,7 +822,7 @@ class KerasLSTMOnlySteering(KerasLSTM):
     def interpreter_to_output(self, interpreter_out) \
             -> Tuple[Union[float, np.ndarray], ...]:
         steering = interpreter_out[0]
-        return (steering,)
+        return steering, 0
 
 
 class Keras3D_CNN(KerasPilot):
@@ -933,7 +933,7 @@ class Keras3D_CNNOnlySteering(Keras3D_CNN):
     def interpreter_to_output(self, interpreter_out) \
             -> Tuple[Union[float, np.ndarray], ...]:
         steering = interpreter_out[0]
-        return (steering,)
+        return steering, 0
 
 
 class KerasLatent(KerasPilot):
