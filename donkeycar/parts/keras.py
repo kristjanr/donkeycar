@@ -806,6 +806,8 @@ class KerasLSTMOnlySteering(KerasLSTM):
     def __init__(self, **kwargs):
         kwargs['num_outputs'] = 1
         super().__init__(**kwargs)
+        logger.info(f'Num outputs {self.num_outputs}')
+        logger.info(f'Sequence length {self.seq_length}')
 
     def y_transform(self, records: Union[TubRecord, List[TubRecord]]) -> XY:
         """ Only return the last entry of angle"""
@@ -915,6 +917,8 @@ class Keras3D_CNNOnlySteering(Keras3D_CNN):
     def __init__(self, **kwargs):
         kwargs['num_outputs'] = 1
         super().__init__(**kwargs)
+        logger.info(f'Num outputs {self.num_outputs}')
+        logger.info(f'Sequence length {self.seq_length}')
 
     def y_transform(self, records: Union[TubRecord, List[TubRecord]]) -> XY:
         """ Only return the last entry of angle"""
