@@ -913,6 +913,14 @@ class Keras3D_CNN(KerasPilot):
         return shapes
 
 
+class Keras3D_CNN_Modified(Keras3D_CNN):
+    def create_model(self):
+        return build_3d_cnn_modified(
+            self.input_shape,
+            s=self.seq_length,
+            num_outputs=self.num_outputs)
+
+
 class Keras3D_CNNOnlySteering(Keras3D_CNN):
     def __init__(self, **kwargs):
         kwargs['num_outputs'] = 1
@@ -1233,6 +1241,56 @@ def build_3d_cnn(input_shape, s, num_outputs):
     x = Flatten()(x)
 
     x = Dense(256)(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = Dropout(drop)(x)
+
+    x = Dense(256)(x)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = Dropout(drop)(x)
+
+    out = Dense(num_outputs, name='outputs')(x)
+    model = Model(inputs=[img_in], outputs=out, name='3dcnn')
+    return model
+
+
+def build_3d_cnn_modified(input_shape, s, num_outputs):
+    logger.info(f'input_shape {input_shape} num_outputs {num_outputs}')
+    """
+    Credit: https://github.com/jessecha/DNRacing/blob/master/3D_CNN_Model/model.py
+
+    :param input_shape:     image input shape
+    :param s:               sequence length
+    :param num_outputs:     output dimension
+    :return:                keras model
+    """
+    drop = 0.5
+    input_shape = (s, ) + input_shape
+    img_in = Input(shape=input_shape, name='img_in')
+    x = img_in
+    # Second layer
+    x = Conv3D(
+            filters=16, kernel_size=(3, 3, 3), strides=(1, 3, 3),
+            data_format='channels_last', padding='valid', activation='relu')(x)
+    x = MaxPooling3D(
+            pool_size=(1, 2, 2), strides=(1, 2, 2), padding='valid',
+            data_format=None)(x)
+    # Third layer
+    x = Conv3D(
+            filters=32, kernel_size=(1, 3, 3), strides=(1, 1, 1),
+            data_format='channels_last', padding='same', activation='relu')(x)
+    x = MaxPooling3D(
+        pool_size=(1, 2, 2), strides=(1, 2, 2), padding='valid',
+        data_format=None)(x)
+    # Fourth layer
+    x = Conv3D(
+            filters=32, kernel_size=(1, 3, 3), strides=(1, 1, 1),
+            data_format='channels_last', padding='same', activation='relu')(x)
+    # Fully connected layer
+    x = Flatten()(x)
+
+    x = Dense(128)(x)
     x = BatchNormalization()(x)
     x = Activation('relu')(x)
     x = Dropout(drop)(x)
