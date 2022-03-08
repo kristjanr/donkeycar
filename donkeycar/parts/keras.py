@@ -944,6 +944,14 @@ class Keras3D_CNNOnlySteering(Keras3D_CNN):
         return steering, 0
 
 
+class Keras3D_CNN_ModifiedOnlySteering(Keras3D_CNNOnlySteering):
+    def create_model(self):
+        return build_3d_cnn_modified(
+            self.input_shape,
+            s=self.seq_length,
+            num_outputs=self.num_outputs)
+
+
 class KerasLatent(KerasPilot):
     def __init__(self,
                  interpreter: Interpreter = KerasInterpreter(),
