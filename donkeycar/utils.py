@@ -434,7 +434,7 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
     '''
     from donkeycar.parts.keras import KerasCategorical, KerasLinear, \
         KerasInferred, KerasIMU, KerasMemory, KerasBehavioral, KerasLocalizer, \
-        KerasLSTM, Keras3D_CNN, KerasLinearOnlySteering, KerasLSTMOnlySteering, Keras3D_CNNOnlySteering
+        KerasLSTM, Keras3D_CNN, KerasLinearOnlySteering, KerasLSTMOnlySteering, Keras3D_CNNOnlySteering, Keras3D_CNN_ModifiedOnlySteering
     from donkeycar.parts.interpreter import KerasInterpreter, TfLite, TensorRT
 
     if model_type is None:
@@ -489,6 +489,9 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
                          seq_length=cfg.SEQUENCE_LENGTH)
     elif used_model_type == '3d-steering':
         kl = Keras3D_CNNOnlySteering(interpreter=interpreter, input_shape=input_shape,
+                         seq_length=cfg.SEQUENCE_LENGTH)
+    elif used_model_type == '3d-modified-steering':
+        kl = Keras3D_CNN_ModifiedOnlySteering(interpreter=interpreter, input_shape=input_shape,
                          seq_length=cfg.SEQUENCE_LENGTH)
     else:
         known = [k + u for k in ('', 'tflite_', 'tensorrt_')
