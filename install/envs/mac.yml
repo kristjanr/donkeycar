@@ -1,40 +1,35 @@
-name: donkey
+name: donkey2
 
 channels:
   - defaults
   - conda-forge
-  - pytorch
 
 dependencies:
-  - python=3.7
-  - h5py
-  - pillow
-  - opencv
-  - matplotlib
-  - tornado
+  - codecov
   - docopt
+  - h5py
+  - imgaug
+  - kivy=2.0.0
+  - matplotlib
+  - mypy
+  - numpy
+  - opencv
+  - paho-mqtt
   - pandas
+  - pillow
+  - pip
+  - plotly
+  - PrettyTable
+  - progress
+  - psutil
   - pylint
+  - pyfiglet
   - pytest
   - pytest-cov
-  - codecov
-  - pip
-  - imgaug
-  - progress
-  - paho-mqtt
-  - PrettyTable
-  - pyfiglet
-  - mypy
-  - pytorch=1.7.1
-  - torchvision
-  - torchaudio
-  - pytorch-lightning
-  - numpy
-  - psutil
-  - kivy=2.0.0
-  - plotly
-  - wandb
+  - python=3.7
   - pyyaml
+  - tornado
+  - wandb
   - pip:
     - tensorflow==2.2.0
     - git+https://github.com/autorope/keras-vis.git
