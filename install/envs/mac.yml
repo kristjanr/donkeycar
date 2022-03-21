@@ -12,7 +12,7 @@ dependencies:
   - kivy=2.0.0
   - matplotlib
   - mypy
-  - numpy
+  - numpy=1.18.5
   - opencv
   - paho-mqtt
   - pandas
