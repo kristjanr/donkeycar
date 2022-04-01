@@ -95,7 +95,7 @@ try:
                                           right=config.ROI_CROP_RIGHT,
                                           bottom=config.ROI_CROP_BOTTOM,
                                           top=config.ROI_CROP_TOP,
-                                          keep_size=True)
+                                          keep_size=config.ROI_CROP_KEEP_SIZE)
             elif aug_type == 'TRAPEZE':
                 logger.info(f'Creating augmentation {aug_type}')
                 return Augmentations.trapezoidal_mask(

@@ -350,6 +350,7 @@ ROI_CROP_TOP = 45               # the number of rows of pixels to ignore on the 
 ROI_CROP_BOTTOM = 0             # the number of rows of pixels to ignore on the bottom of the image
 ROI_CROP_RIGHT = 0              # the number of rows of pixels to ignore on the right of the image
 ROI_CROP_LEFT = 0               # the number of rows of pixels to ignore on the left of the image
+ROI_CROP_KEEP_SIZE = True       # the image will be stretched to the same size as original after cropping
 # For trapezoidal see explanation in augmentations.py. Requires 'TRAPEZE' in
 # TRANSFORMATIONS to be set
 ROI_TRAPEZE_LL = 0

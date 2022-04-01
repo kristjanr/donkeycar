@@ -120,6 +120,7 @@ ROI_CROP_TOP = 45
 ROI_CROP_BOTTOM = 0
 ROI_CROP_RIGHT = 0
 ROI_CROP_LEFT = 0
+ROI_CROP_KEEP_SIZE = True       # the image will be stretched to the same size as original after cropping
 # For trapezoidal see explanation in augmentations.py, requires 'TRAPEZE' in
 # TRANSFORMATIONS to be set
 ROI_TRAPEZE_LL = 0
