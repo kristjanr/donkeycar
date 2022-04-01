@@ -440,7 +440,10 @@ def get_model_by_type(model_type: str, cfg: 'Config') -> 'KerasPilot':
     if model_type is None:
         model_type = cfg.DEFAULT_MODEL_TYPE
     logger.info(f'get_model_by_type: model type is: {model_type}')
-    input_shape = (cfg.IMAGE_H, cfg.IMAGE_W, cfg.IMAGE_DEPTH)
+    if cfg.ROI_CROP_KEEP_SIZE:
+        input_shape = (cfg.IMAGE_H, cfg.IMAGE_W, cfg.IMAGE_DEPTH)
+    else:
+        input_shape = (cfg.IMAGE_H - cfg.ROI_CROP_TOP - cfg.ROI_CROP_BOTTOM, cfg.IMAGE_W - cfg.ROI_CROP_RIGHT - cfg.ROI_CROP_LEFT, cfg.IMAGE_DEPTH)
     if 'tflite_' in model_type:
         interpreter = TfLite()
         used_model_type = model_type.replace('tflite_', '')
