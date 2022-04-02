@@ -10,6 +10,7 @@ from progress.bar import IncrementalBar
 import donkeycar as dk
 from donkeycar.management.joystick_creator import CreateJoystick
 from donkeycar.management.tub import TubManager
+from donkeycar.pipeline.augmentations import ImageAugmentation
 from donkeycar.pipeline.types import TubDataset
 from donkeycar.utils import normalize_image, load_image, math
 
@@ -456,9 +457,7 @@ class ShowPredictionPlots(BaseCommand):
         model.load(model_path)
 
         user_angles = []
-        user_throttles = []
         pilot_angles = []
-        pilot_throttles = []
 
         base_path = Path(os.path.expanduser(tub_paths)).absolute().as_posix()
         dataset = TubDataset(config=cfg, tub_paths=[base_path],
@@ -466,34 +465,28 @@ class ShowPredictionPlots(BaseCommand):
         records = dataset.get_records()[:limit]
         bar = IncrementalBar('Inferencing', max=len(records))
 
+        transformation = ImageAugmentation(cfg, 'TRANSFORMATIONS')
+
         for tub_record in records:
             inputs = model.x_transform_and_process(
-                tub_record, lambda x: normalize_image(x))
+                tub_record, lambda x: normalize_image(transformation.run(x)))
             input_dict = model.x_translate(inputs)
             pilot_angle, pilot_throttle = \
                 model.inference_from_dict(input_dict)
-            user_angle, user_throttle = model.y_transform(tub_record)
+            user_angle = model.y_transform(tub_record)
             user_angles.append(user_angle)
-            user_throttles.append(user_throttle)
             pilot_angles.append(pilot_angle)
-            pilot_throttles.append(pilot_throttle)
             bar.next()
 
         angles_df = pd.DataFrame({'user_angle': user_angles,
                                   'pilot_angle': pilot_angles})
-        throttles_df = pd.DataFrame({'user_throttle': user_throttles,
-                                     'pilot_throttle': pilot_throttles})
-
         fig = plt.figure()
         title = f"Model Predictions\nTubs: {tub_paths}\nModel: {model_path}\n" \
                 f"Type: {model_type}"
         fig.suptitle(title)
         ax1 = fig.add_subplot(211)
-        ax2 = fig.add_subplot(212)
         angles_df.plot(ax=ax1)
-        throttles_df.plot(ax=ax2)
         ax1.legend(loc=4)
-        ax2.legend(loc=4)
         plt.savefig(model_path + '_pred.png')
         logger.info(f'Saving model at {model_path}_pred.png')
         plt.show()
