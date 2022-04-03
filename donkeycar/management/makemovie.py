@@ -5,6 +5,7 @@ import tensorflow as tf
 import cv2
 from matplotlib import cm
 from donkeycar.pipeline.augmentations import Augmentations
+from donkeycar.pipeline.types import TubDataset
 
 try:
     from vis.utils import utils
@@ -12,7 +13,6 @@ except:
     raise Exception("Please install keras-vis: pip install git+https://github.com/autorope/keras-vis.git")
 
 import donkeycar as dk
-from donkeycar.parts.tub_v2 import Tub
 from donkeycar.utils import *
 
 
@@ -22,6 +22,7 @@ DEG_TO_RAD = math.pi / 180.0
 class MakeMovie(object):
 
     def __init__(self):
+        self.records = None
         self.do_salient = None
         self.keras_part = None
         self.iterator = None
@@ -30,7 +31,6 @@ class MakeMovie(object):
         self.user = None
         self.end_index = None
         self.model_type = None
-        self.tub = None
         self.cfg = None
         self.cropping = None
 
@@ -64,7 +64,7 @@ class MakeMovie(object):
                                                right=self.cfg.ROI_CROP_RIGHT,
                                                bottom=self.cfg.ROI_CROP_BOTTOM,
                                                top=self.cfg.ROI_CROP_TOP,
-                                               keep_size=True)
+                                               keep_size=self.cfg.ROI_CROP_KEEP_SIZE)
 
         if args.type is None and args.model is not None:
             args.type = self.cfg.DEFAULT_MODEL_TYPE
@@ -81,17 +81,20 @@ class MakeMovie(object):
                 return
 
         self.model_type = args.type
-        self.tub = Tub(args.tub)
+
+        dataset = TubDataset(config=self.cfg, tub_paths=[args.tub],
+                             seq_size=self.cfg.SEQUENCE_LENGTH)
+        self.records = dataset.get_records()
 
         start = args.start
-        self.end_index = args.end if args.end != -1 else len(self.tub)
+        self.end_index = args.end if args.end != -1 else len(self.records)
         num_frames = self.end_index - start
 
         # Move to the correct offset
         self.current = 0
-        self.iterator = self.tub.__iter__()
+        self.iterator = self.records.__iter__()
         while self.current < start:
-            self.iterator.next()
+            self.iterator.__next__()
             self.current += 1
 
         self.scale = args.scale
@@ -101,8 +104,10 @@ class MakeMovie(object):
         if args.model is not None:
             self.keras_part = get_model_by_type(args.type, cfg=self.cfg)
             self.keras_part.load(args.model)
-            if args.salient:
+            if args.salient and self.cfg.ROI_CROP_KEEP_SIZE:
                 self.do_salient = self.init_salient(self.keras_part.interpreter.model)
+            if args.salient and not self.cfg.ROI_CROP_KEEP_SIZE:
+                print("Can only do salient when cropping is done with stretching in order to keep image size")
 
         print('making movie', args.out, 'from', num_frames, 'images')
         clip = mpy.VideoClip(self.make_frame, duration=((num_frames - 1) / self.cfg.DRIVE_LOOP_HZ))
@@ -124,7 +129,7 @@ class MakeMovie(object):
 
         cv2.line(img, p1, p11, color, 2)
 
-    def draw_user_input(self, record, img, img_drawon):
+    def draw_user_input(self, record, img_drawon):
         """
         Draw the user input as a green line on the image
         """
@@ -157,9 +162,13 @@ class MakeMovie(object):
             return
 
         blue = (0, 0, 255)
-        pilot_angle, pilot_throttle = self.keras_part.run(img)
+        if '3d' in self.model_type:
+            pilot_angle, pilot_throttle = self.keras_part.pred_for_movie(img)
+        else:
+            pilot_angle, pilot_throttle = self.keras_part.run(img)
+
         # set throttle to 1.0 where model only learns steering
-        if 'linear-steering' in self.model_type:
+        if 'steering' in self.model_type:
             pilot_throttle = 1.0
         self.draw_line_into_image(pilot_angle, pilot_throttle, True, img_drawon, blue)
 
@@ -217,7 +226,6 @@ class MakeMovie(object):
     def compute_visualisation_mask(self, img):
         img = img.reshape((1,) + img.shape)
         images = tf.Variable(img, dtype=float)
-
         if self.model_type == 'linear' or 'linear' in self.model_type:
             with tf.GradientTape(persistent=True) as tape:
                 tape.watch(images)
@@ -248,7 +256,6 @@ class MakeMovie(object):
         beta = 1.0 - alpha
         expected = self.keras_part.interpreter.model.inputs[0].shape[1:]
         actual = img.shape
-
         # check input depth and convert to grey to match expected model input
         if expected[2] == 1 and actual[2] == 3:
             grey_img = rgb2gray(img)
@@ -272,18 +279,25 @@ class MakeMovie(object):
         if self.current >= self.end_index:
             return None
 
-        rec = self.iterator.next()
-        img_path = os.path.join(self.tub.images_base_path, rec['cam/image_array'])
-        image_input = img_to_arr(Image.open(img_path))
-        image = image_input
-        if self.cropping:
-            image = self.cropping.augment_image(image)
-        
+        record = self.iterator.__next__()
+
+        if self.cfg.SEQUENCE_LENGTH > 0:
+            rec = record[self.cfg.SEQUENCE_LENGTH - 1]
+            image = rec.image()
+            rec = rec.underlying
+            if self.cropping:
+                image_input = np.array([self.cropping.augment_image(r.image()) for r in record])
+        else:
+            image = record.image()
+            rec = record.underlying
+            if self.cropping:
+                image_input = self.cropping.augment_image(image)
+
         if self.do_salient:
             image = self.draw_salient(image)
             image = cv2.normalize(src=image, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
         
-        if self.user: self.draw_user_input(rec, image_input, image)
+        if self.user: self.draw_user_input(rec, image)
         if self.keras_part is not None:
             self.draw_model_prediction(image_input, image)
             self.draw_steering_distribution(image_input, image)

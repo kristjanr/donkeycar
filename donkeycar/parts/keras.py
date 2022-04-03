@@ -898,6 +898,10 @@ class Keras3D_CNN(KerasPilot):
         img_arr_norm = normalize_image(img_arr)
         return self.inference(img_arr_norm, other_arr)
 
+    def pred_for_movie(self, img_arr):
+        img_arr_norm = normalize_image(img_arr)
+        return self.inference(img_arr_norm, None)
+
     def interpreter_to_output(self, interpreter_out) \
             -> Tuple[Union[float, np.ndarray], ...]:
         steering = interpreter_out[0]
