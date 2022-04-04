@@ -1120,8 +1120,6 @@ class JoystickController(object):
         if self.mode_latch is not None:
             self.mode = self.mode_latch
             self.mode_latch = None
-        if recording is not None:
-            self.recording = recording
 
         '''
         process E-Stop state machine
