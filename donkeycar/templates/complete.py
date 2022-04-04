@@ -30,6 +30,7 @@ from donkeycar.parts.throttle_filter import ThrottleFilter
 from donkeycar.parts.behavior import BehaviorPart
 from donkeycar.parts.file_watcher import FileWatcher
 from donkeycar.parts.launch import AiLaunch
+from donkeycar.parts.turn_boost import TurnBoost
 from donkeycar.utils import *
 
 logger = logging.getLogger(__name__)
@@ -529,6 +530,18 @@ def drive(cfg, model_path=None, use_joystick=False, model_type=None,
     if (cfg.CONTROLLER_TYPE != "pigpio_rc") and (cfg.CONTROLLER_TYPE != "MM1"):
         if isinstance(ctr, JoystickController):
             ctr.set_button_down_trigger(cfg.AI_LAUNCH_ENABLE_BUTTON, aiLauncher.enable_ai_launch)
+
+
+    #to give the car a boost when turning to the right.
+    turnBoost = TurnBoost(cfg.TURN_BOOST_CONFIG)
+
+    V.add(turnBoost,
+          inputs=['user/mode', 'user/angle', 'throttle'],
+          outputs=['throttle'])
+
+    if (cfg.CONTROLLER_TYPE != "pigpio_rc") and (cfg.CONTROLLER_TYPE != "MM1"):
+        if isinstance(ctr, JoystickController):
+            ctr.set_button_down_trigger(cfg.TURN_BOOST_TOGGLE_BUTTON, turnBoost.toggle)
 
     class AiRunCondition:
         '''
