@@ -11,23 +11,27 @@ class TurnBoost():
         self.positive_angles = {k: v for k, v in config.items() if k > 0}
         self.negative_angles = {k: v for k, v in config.items() if k < 0}
         self.enabled = False
+        self.counter = 0
 
     def toggle(self):
         self.enabled = not self.enabled
         print(f'TurnBoost is {"enabled" if self.enabled else "disabled"}.')
 
     def run(self, mode, current_angle, current_throttle):
+        self.counter += 1
         if mode == "user" and self.enabled:
             for angle, boost in self.positive_angles.items():
                 if current_angle >= angle:
                     new_throttle = current_throttle + boost
-                    print(f'Boosted throttle: {new_throttle}')
+                    if self.counter % 5 == 0:
+                        print(str.format("Tight right Turn! Boosted throttle: {:.2f}", new_throttle))
                     return new_throttle
 
             for angle, boost in self.negative_angles.items():
                 if current_angle <= angle:
                     new_throttle = current_throttle + boost
-                    print(f'Boosted throttle: {new_throttle}')
+                    if self.counter % 5 == 0:
+                        print(str.format("Tight left Turn! Boosted throttle: {:.2f}", new_throttle))
                     return new_throttle
 
         return current_throttle
