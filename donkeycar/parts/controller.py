@@ -1147,7 +1147,7 @@ class JoystickController(object):
         if self.chaos_monkey_steering is not None:
             return self.chaos_monkey_steering, self.throttle, self.mode, False
 
-        return self.angle, self.throttle, self.mode, self.recording, self.constant_throttle
+        return self.angle, self.throttle, self.mode, self.recording
 
 
     def run(self, img_arr=None, mode=None, recording=None):
