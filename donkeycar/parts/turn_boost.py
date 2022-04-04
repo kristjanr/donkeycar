@@ -8,8 +8,8 @@ class TurnBoost():
     '''
 
     def __init__(self, config: dict):
-        self.positive_angles = {k: v for k, v in config.items() if k > 0}
-        self.negative_angles = {k: v for k, v in config.items() if k < 0}
+        self.positive_angles = sorted([(angle, boost) for angle, boost in config.items() if angle > 0])
+        self.negative_angles = sorted([(angle, boost) for angle, boost in config.items() if angle < 0], reverse=True)
         self.enabled = False
         self.counter = 0
 
@@ -20,18 +20,18 @@ class TurnBoost():
     def run(self, mode, current_angle, current_throttle):
         self.counter += 1
         if mode == "user" and self.enabled:
-            for angle, boost in self.positive_angles.items():
+            for angle, boost in self.positive_angles:
                 if current_angle >= angle:
                     new_throttle = current_throttle + boost
                     if self.counter % 5 == 0:
-                        print(str.format("Tight right Turn! Boosted throttle: {:.2f}", new_throttle))
+                        print(str.format("Tight right turn (more than {:.2f}). Boosted throttle: {:.2f}", angle, new_throttle))
                     return new_throttle
 
-            for angle, boost in self.negative_angles.items():
+            for angle, boost in self.negative_angles:
                 if current_angle <= angle:
                     new_throttle = current_throttle + boost
                     if self.counter % 5 == 0:
-                        print(str.format("Tight left Turn! Boosted throttle: {:.2f}", new_throttle))
+                        print(str.format("Tight left turn (less than {:.2f}). Boosted throttle: {:.2f}", angle, new_throttle))
                     return new_throttle
 
         return current_throttle
