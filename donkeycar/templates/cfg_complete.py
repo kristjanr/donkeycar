@@ -538,7 +538,7 @@ AI_LAUNCH_THROTTLE = 0.0            # the ai will output this throttle value
 AI_LAUNCH_ENABLE_BUTTON = 'R2'      # this keypress will enable this boost. It must be enabled before each use to prevent accidental trigger.
 AI_LAUNCH_KEEP_ENABLED = False      # when False ( default) you will need to hit the AI_LAUNCH_ENABLE_BUTTON for each use. This is safest. When this True, is active on each trip into "local" ai mode.
 
-TURN_BOOST_TOGGLE_BUTTON = 'R2'
+TURN_BOOST_TOGGLE_BUTTON = 'A'
 
 # Keys are turning angles which equal or bigger, when positive or equal or smaller, when negative need a boost.
 # Values are the throttle increase for during that angle turn.
