@@ -10,7 +10,7 @@ class TurnBoost():
     def __init__(self, config: dict):
         self.positive_angles = sorted([(angle, boost) for angle, boost in config.items() if angle > 0], reverse=True)
         self.negative_angles = sorted([(angle, boost) for angle, boost in config.items() if angle < 0])
-        self.enabled = False
+        self.enabled = True
         self.counter = 0
 
     def toggle(self):
