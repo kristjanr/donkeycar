@@ -89,7 +89,7 @@ class TubDataset(object):
 
     def get_records(self):
         if not self.records:
-            logger.info(f'Loading tubs from paths {self.tub_paths}')
+            logger.info(f'Loading only the first tub from paths {self.tub_paths}')
         for tub in self.tubs:
             for underlying in tub:
                 record = TubRecord(self.config, tub.base_path, underlying)
@@ -98,11 +98,11 @@ class TubDataset(object):
             if self.seq_size > 0:
                 seq = Collator(self.seq_size, self.records)
                 self.records = list(seq)
-        return self.records
+            return self.records
 
     def get_every_second_record(self):
         if not self.records:
-            logger.info(f'Loading tubs from paths {self.tub_paths}')
+            logger.info(f'Loading only the first tub from paths {self.tub_paths}')
         for tub in self.tubs:
             for underlying in [t for t in tub][::2]:
                 record = TubRecord(self.config, tub.base_path, underlying)
@@ -111,7 +111,7 @@ class TubDataset(object):
             if self.seq_size > 0:
                 seq = CollatorEverySecondRecord(self.seq_size, self.records)
                 self.records = list(seq)
-        return self.records
+            return self.records
 
 
 class Collator(Iterable[List[TubRecord]]):
