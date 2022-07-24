@@ -100,6 +100,19 @@ class TubDataset(object):
                 self.records = list(seq)
         return self.records
 
+    def get_every_second_record(self):
+        if not self.records:
+            logger.info(f'Loading tubs from paths {self.tub_paths}')
+        for tub in self.tubs:
+            for underlying in [t for t in tub][::2]:
+                record = TubRecord(self.config, tub.base_path, underlying)
+                if not self.train_filter or self.train_filter(record):
+                    self.records.append(record)
+            if self.seq_size > 0:
+                seq = CollatorEverySecondRecord(self.seq_size, self.records)
+                self.records = list(seq)
+        return self.records
+
 
 class Collator(Iterable[List[TubRecord]]):
     """" Builds a sequence of continuous records for RNN and similar models. """
@@ -120,6 +133,46 @@ class Collator(Iterable[List[TubRecord]]):
         :return:        if first record is followed by second record
         """
         it_is = rec_1.underlying['_index'] == rec_2.underlying['_index'] - 1 \
+                and '__empty__' not in rec_1.underlying \
+                and '__empty__' not in rec_2.underlying
+        return it_is
+
+    def __iter__(self) -> Iterator[List[TubRecord]]:
+        """ Iterable interface. Returns a generator as Iterator. """
+        it = iter(self.records)
+        for this_record in it:
+            seq = [this_record]
+            seq_it = copy.copy(it)
+            for next_record in seq_it:
+                if self.is_continuous(this_record, next_record) and \
+                        len(seq) < self.seq_length:
+                    seq.append(next_record)
+                    this_record = next_record
+                else:
+                    break
+            if len(seq) == self.seq_length:
+                yield seq
+
+
+class CollatorEverySecondRecord(Iterable[List[TubRecord]]):
+    """" Builds a sequence of continuous records for RNN and similar models. """
+    def __init__(self, seq_length: int, records: List[TubRecord]):
+        """
+        :param seq_length:  length of sequence
+        :param records:     input record list
+        """
+        self.records = records
+        self.seq_length = seq_length
+
+    @staticmethod
+    def is_continuous(rec_1: TubRecord, rec_2: TubRecord) -> bool:
+        """
+        Checks if second record is the one after the next from the first record
+        :param rec_1:   first record
+        :param rec_2:   second record
+        :return:        if the next record after the first record is followed by second record
+        """
+        it_is = rec_1.underlying['_index'] == rec_2.underlying['_index'] - 2 \
                 and '__empty__' not in rec_1.underlying \
                 and '__empty__' not in rec_2.underlying
         return it_is
